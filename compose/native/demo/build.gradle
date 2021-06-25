@@ -72,6 +72,7 @@ kotlin {
                 implementation project(":compose:runtime:runtime")
                 implementation project(":compose:ui:ui")
                 implementation project(":compose:ui:ui-graphics")
+                implementation project(":compose:material:material")
                 // implementation project(":compose:ui:ui-text")
 
                 implementation(libs.skikoNativeMacOSX64)

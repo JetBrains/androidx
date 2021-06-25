@@ -42,9 +42,14 @@ if (!AndroidXComposePlugin.isMultiplatformEnabled(project)) {
 }
 
 if (AndroidXComposePlugin.isMultiplatformEnabled(project)) {
+    dependencies {
+        kotlinNativeCompilerPluginClasspath(project(":compose:compiler:compiler-hosted"))
+    }
+
     kotlin {
         android()
         jvm("desktop")
+        macosX64()
 
         /*
          * When updating dependencies, make sure to make the an an analogous update in the
@@ -58,6 +63,12 @@ if (AndroidXComposePlugin.isMultiplatformEnabled(project)) {
 
             androidMain.dependencies {
                 implementation(libs.kotlinStdlib)
+            }
+
+            nativeMain.dependsOn(commonMain)
+
+            macosX64Main {
+                dependsOn(nativeMain)
             }
         }
     }
