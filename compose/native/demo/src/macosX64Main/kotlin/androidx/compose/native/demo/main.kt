@@ -4,11 +4,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
+import androidx.compose.material.RadioButton
+import androidx.compose.material.Switch
 import androidx.compose.native.Window
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,11 +37,13 @@ fun createWindow(title: String) {
     println("createWindow()")
     Window(title) {
         var tick by remember { mutableStateOf(false) }
+        var selected by remember { mutableStateOf(false) }
+        var clutz by remember { mutableStateOf(false) }
         Column {
             Box(
                 modifier = Modifier
                     .padding(16.dp)
-                    .background(color = Color.Red)
+                    .background(color = if (selected) Color.Gray else Color.Red)
                     .width(100.dp).height(100.dp)
                     .clickable {
                         println("Red box: clicked")
@@ -61,29 +67,29 @@ fun createWindow(title: String) {
                         .padding(16.dp)
                         .background(color = if (tick) Color.Green else Color.Blue)
                         .width(20.dp).height(20.dp)
-                        .clickable {
-                            println("Small box: clicked")
+                    .clickable {
+                        println("Small box: clicked")
+                    }
+                    .pointerMoveFilter(
+                        onMove = {
+                            println("Small box: onMove")
+                            true
+                        },
+                        onEnter = {
+                            println("Small box: onEnter")
+                            true
+                        },
+                        onExit = {
+                            println("Small box: onExit")
+                            true
                         }
-                        .pointerMoveFilter(
-                            onMove = {
-                                println("Small box: onMove")
-                                true
-                            },
-                            onEnter = {
-                                println("Small box: onEnter")
-                                true
-                            },
-                            onExit = {
-                                println("Small box: onExit")
-                                true
-                            }
-                        )
+                    )
                 )
             }
             Spacer(
                 Modifier.width(200.dp)
-                    .height(4.dp)
-                    .background(color = Color.DarkGray)
+                    .height(if (clutz) 4.dp else 12.dp)
+                    .background(color = if (clutz) Color.DarkGray else Color.Magenta)
             )
             Button(
                 modifier = Modifier
@@ -94,6 +100,30 @@ fun createWindow(title: String) {
                 }
             ) {
             }
+            Row {
+                RadioButton(
+                    modifier = Modifier
+                        .padding(16.dp),
+                    selected = selected,
+                    onClick = {
+                        println("RadioButton clicked!")
+                        selected = !selected
+                    }
+                )
+
+                Checkbox(
+                    checked = clutz,
+                    modifier = Modifier.padding(16.dp),
+                    onCheckedChange = { clutz = !clutz }
+                )
+            }
+            var switched by remember { mutableStateOf(true) }
+            Switch(
+                modifier = Modifier
+                    .padding(16.dp),
+                checked = switched,
+                onCheckedChange = { switched = it }
+            )
         }
         LaunchedEffect(Unit) {
             while (true) {
