@@ -237,6 +237,10 @@ internal class UIKitTextInputService(
             innerTextFieldBounds,
             decorationBoxBounds
         )
+        updateTextLayoutResult(textLayoutResult)
+    }
+
+    fun updateTextLayoutResult(textLayoutResult: TextLayoutResult) {
         this.textLayoutResult = textLayoutResult
     }
 

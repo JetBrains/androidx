@@ -17,17 +17,21 @@
 package androidx.compose.foundation.text.input.internal
 
 import androidx.compose.foundation.content.internal.ReceiveContentConfiguration
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.PlatformTextInputMethodRequest
 import androidx.compose.ui.platform.PlatformTextInputSession
 import androidx.compose.ui.platform.ViewConfiguration
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.EditCommand
 import androidx.compose.ui.text.input.EditProcessor
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.ImeOptions
 import androidx.compose.ui.text.input.TextFieldValue
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -86,6 +90,7 @@ internal actual suspend fun PlatformTextInputSession.platformSpecificTextInputSe
                     state.visualText.selection,
                     state.visualText.composition,
                 ),
+                textLayoutResult = snapshotFlow(layoutState::layoutResult).filterNotNull(),
                 imeOptions = imeOptions,
                 onEditCommand = ::onEditCommand,
                 onImeAction = onImeAction,
@@ -101,5 +106,6 @@ private data class SkikoPlatformTextInputMethodRequest(
     override val imeOptions: ImeOptions,
     override val onEditCommand: (List<EditCommand>) -> Unit,
     override val onImeAction: ((ImeAction) -> Unit)?,
-    override val editProcessor: EditProcessor?
+    override val editProcessor: EditProcessor?,
+    override val textLayoutResult: Flow<TextLayoutResult>
 ): PlatformTextInputMethodRequest

@@ -17,11 +17,13 @@
 package androidx.compose.ui.platform
 
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.EditCommand
 import androidx.compose.ui.text.input.EditProcessor
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.ImeOptions
 import androidx.compose.ui.text.input.TextFieldValue
+import kotlinx.coroutines.flow.Flow
 
 actual interface PlatformTextInputMethodRequest {
     @ExperimentalComposeUiApi
@@ -34,4 +36,6 @@ actual interface PlatformTextInputMethodRequest {
     val onImeAction: ((ImeAction) -> Unit)?
     @ExperimentalComposeUiApi
     val editProcessor: EditProcessor?
+    @ExperimentalComposeUiApi
+    val textLayoutResult : Flow<TextLayoutResult>
 }

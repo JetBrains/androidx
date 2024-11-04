@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.SessionMutex
 import androidx.compose.ui.draganddrop.UIKitDragAndDropManager
@@ -100,6 +101,9 @@ import kotlinx.cinterop.CValue
 import kotlinx.cinterop.readValue
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import platform.CoreGraphics.CGAffineTransformIdentity
 import platform.CoreGraphics.CGAffineTransformInvert
@@ -708,17 +712,24 @@ internal class ComposeSceneMediator(
             innerSessionMutex.withSessionCancellingPrevious(
                 sessionInitializer = { null }
             ) {
-                suspendCancellableCoroutine<Nothing> { continuation ->
-                    textInputService.startInput(
-                        value = request.state,
-                        imeOptions = request.imeOptions,
-                        editProcessor = request.editProcessor,
-                        onEditCommand = request.onEditCommand,
-                        onImeActionPerformed = request.onImeAction ?: {}
-                    )
+                coroutineScope {
+                    launch {
+                        request.textLayoutResult.collect {
+                            textInputService.updateTextLayoutResult(it)
+                        }
+                    }
+                    suspendCancellableCoroutine<Nothing> { continuation ->
+                        textInputService.startInput(
+                            value = request.state,
+                            imeOptions = request.imeOptions,
+                            editProcessor = request.editProcessor,
+                            onEditCommand = request.onEditCommand,
+                            onImeActionPerformed = request.onImeAction ?: {}
+                        )
 
-                    continuation.invokeOnCancellation {
-                        textInputService.stopInput()
+                        continuation.invokeOnCancellation {
+                            textInputService.stopInput()
+                        }
                     }
                 }
             }
