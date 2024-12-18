@@ -54,7 +54,6 @@ internal class CustomUsage(
     override fun getDependencies(): Set<ModuleDependency> = dependencies
     override fun getDependencyConstraints(): Set<DependencyConstraint> = emptySet()
     override fun getGlobalExcludes(): Set<ExcludeRule> = emptySet()
-    override fun getUsage(): Usage = error("Should not be accessed!")
 }
 
 @OptIn(InternalKotlinGradlePluginApi::class)

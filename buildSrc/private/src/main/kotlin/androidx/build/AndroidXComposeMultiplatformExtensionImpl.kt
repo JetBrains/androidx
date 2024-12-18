@@ -30,7 +30,6 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithSimulatorTests
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.native.DefaultSimulatorTestRun
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import org.tomlj.Toml
@@ -100,7 +99,7 @@ open class AndroidXComposeMultiplatformExtensionImpl @Inject constructor(
             return System.getProperty("idea.active")?.toBoolean() == true
         }
 
-    @OptIn(ExperimentalWasmDsl::class)
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     override fun wasm(): Unit = multiplatformExtension.run {
         wasmJs {
             browser {

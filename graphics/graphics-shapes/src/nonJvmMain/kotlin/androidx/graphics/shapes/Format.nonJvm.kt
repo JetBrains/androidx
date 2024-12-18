@@ -18,3 +18,4 @@ package androidx.graphics.shapes
 
 internal actual fun Float.toStringWithLessPrecision(): String {
     return this.toString()
+}

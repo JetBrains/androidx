@@ -46,6 +46,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinBasePluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.KotlinMultiplatformPluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 import org.jetbrains.kotlin.tooling.core.withClosure
 
@@ -137,19 +138,12 @@ class AndroidXComposeImplPlugin : Plugin<Project> {
                 }
             }
 
-            // TODO: remove when fixing https://youtrack.jetbrains.com/issue/CMP-6792
-            project.tasks.withType(KotlinJsCompile::class.java).configureEach {
-                @Suppress("DEPRECATION")
-                it.kotlinOptions.freeCompilerArgs += listOf(
-                    "-Xklib-enable-signature-clash-checks=false"
-                )
-            }
 
             project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile>().configureEach {
-                it.compilerOptions {
-                    freeCompilerArgs.add("-opt-in=kotlinx.cinterop.ExperimentalForeignApi")
-                    freeCompilerArgs.add("-opt-in=kotlin.experimental.ExperimentalNativeApi")
-                }
+                it.compilerOptions.freeCompilerArgs.addAll(
+                    "-opt-in=kotlinx.cinterop.ExperimentalForeignApi",
+                    "-opt-in=kotlin.experimental.ExperimentalNativeApi"
+                )
             }
         }
 
@@ -369,18 +363,11 @@ private fun configureComposeCompilerPlugin(
         // Add Compose compiler plugin to kotlinPlugin configuration, making sure it works
         // for Playground builds as well
 
-        // TODO: Uncomment when implementing https://youtrack.jetbrains.com/issue/CMP-6792
-//        project.dependencies.add(
-//            COMPILER_PLUGIN_CONFIGURATION,
-//            "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:$kotlinVersion"
-//        )
-
-        val compilerPluginVersion = project.properties["jetbrains.compose.compiler.version"] as String
+        val compilerPluginVersion = "2.1.0" //project.properties["jetbrains.compose.compiler.version"] as String
         project.dependencies.add(
             COMPILER_PLUGIN_CONFIGURATION,
-            "org.jetbrains.compose.compiler:compiler:$compilerPluginVersion"
+            "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:$compilerPluginVersion"
         )
-
         val kotlinPlugin = configuration.incoming.artifactView { view ->
             view.attributes { attributes ->
                 attributes.attribute(

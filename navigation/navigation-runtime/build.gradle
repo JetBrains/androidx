@@ -140,6 +140,10 @@ androidXMultiplatform {
             }
         }
 
+        wasmJsMain.dependencies {
+            implementation(libs.kotlinXw3c)
+        }
+
         wasmJsTest.kotlin.srcDirs("src/jsTest/kotlin")
     }
 }
