@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.konan.target.Family
 plugins {
     id("AndroidXPlugin")
     id("com.android.library")
+    id("JetbrainsAndroidXPlugin")
 }
 
 androidXMultiplatform {
@@ -39,6 +40,8 @@ androidXMultiplatform {
     mac()
     linux()
     ios()
+    js()
+    wasm()
 
     kotlin {
         explicitApi = ExplicitApiMode.Strict
@@ -53,7 +56,7 @@ androidXMultiplatform {
 
         commonMain {
             dependencies {
-                api("androidx.annotation:annotation:1.8.1")
+                api("org.jetbrains.compose.annotation-internal:annotation:1.7.1")
                 api(libs.kotlinStdlib)
                 api(libs.kotlinCoroutinesCore)
             }
@@ -82,7 +85,7 @@ androidXMultiplatform {
             dependsOn(jvmCommonMain)
             dependencies {
                 api(libs.kotlinCoroutinesAndroid)
-                implementation(projectOrArtifact(":core:core-viewtree"))
+                implementation("androidx.core:core-viewtree:1.0.0-alpha01")
             }
         }
 
@@ -108,12 +111,13 @@ androidXMultiplatform {
         nativeMain.dependsOn(nonJvmCommonMain)
         darwinMain.dependsOn(nativeMain)
         linuxMain.dependsOn(nativeMain)
+        webMain.dependsOn(nonJvmCommonMain)
 
         targets.configureEach { target ->
             if (target.platformType == KotlinPlatformType.native) {
                 target.compilations["main"].defaultSourceSet {
                     def konanTargetFamily = target.konanTarget.family
-                    if (konanTargetFamily == Family.OSX || konanTargetFamily == Family.IOS) {
+                    if (konanTargetFamily.appleFamily) {
                         dependsOn(darwinMain)
                     } else if (konanTargetFamily == Family.LINUX) {
                         dependsOn(linuxMain)
@@ -121,9 +125,26 @@ androidXMultiplatform {
                         throw new GradleException("unknown native target ${target}")
                     }
                 }
+            } else if (target.platformType in [
+                    KotlinPlatformType.js,
+                    KotlinPlatformType.wasm
+            ]) {
+                target.compilations["main"].defaultSourceSet {
+                    dependsOn(webMain)
+                }
             }
         }
     }
+}
+
+kotlin {
+    watchosArm64()
+    watchosArm32()
+    watchosX64()
+    watchosSimulatorArm64()
+    tvosArm64()
+    tvosX64()
+    tvosSimulatorArm64()
 }
 
 android {

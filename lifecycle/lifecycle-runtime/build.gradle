@@ -14,14 +14,17 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 plugins {
     id("AndroidXPlugin")
     id("com.android.library")
-    id("androidx.baselineprofile")
+    id("JetbrainsAndroidXPlugin")
 }
+
 androidXMultiplatform {
     android()
     desktop()
     mac()
     linux()
     ios()
+    js()
+    wasm()
 
     kotlin {
         explicitApi = ExplicitApiMode.Strict
@@ -34,7 +37,7 @@ androidXMultiplatform {
             dependencies {
                 api(libs.kotlinStdlib)
                 api(project(":lifecycle:lifecycle-common"))
-                api("androidx.annotation:annotation:1.8.1")
+                api("org.jetbrains.compose.annotation-internal:annotation:1.7.1")
             }
         }
 
@@ -70,7 +73,7 @@ androidXMultiplatform {
             dependsOn(jvmCommonMain)
             dependencies {
                 api(libs.kotlinCoroutinesAndroid)
-                implementation(project(":core:core-viewtree"))
+                implementation("androidx.core:core-viewtree:1.0.0-alpha01")
                 implementation("androidx.arch.core:core-runtime:2.2.0")
                 implementation("androidx.profileinstaller:profileinstaller:1.4.0")
             }
@@ -87,7 +90,7 @@ androidXMultiplatform {
         androidInstrumentedTest {
             dependsOn(commonTest)
             dependencies {
-                implementation(project(":core:core-viewtree"))
+                implementation("androidx.core:core-viewtree:1.0.0-alpha01")
                 implementation(libs.junit)
                 implementation(libs.truth)
                 implementation(libs.testExtJunit)
@@ -100,6 +103,9 @@ androidXMultiplatform {
         nonJvmCommonMain {
             dependsOn(commonMain)
         }
+        nonJvmCommonTest {
+            dependsOn(commonTest)
+        }
 
         nativeMain {
             dependsOn(nonJvmCommonMain)
@@ -109,7 +115,15 @@ androidXMultiplatform {
         }
 
         nativeTest {
-            dependsOn(commonTest)
+            dependsOn(nonJvmCommonTest)
+        }
+
+        webMain {
+            dependsOn(nonJvmCommonMain)
+        }
+
+        webTest {
+            dependsOn(nonJvmCommonTest)
         }
 
         targets.configureEach { target ->
@@ -123,13 +137,29 @@ androidXMultiplatform {
                 target.compilations["test"].defaultSourceSet {
                     dependsOn(nativeTest)
                 }
+            } else if (target.platformType in [
+                    KotlinPlatformType.js,
+                    KotlinPlatformType.wasm
+            ]) {
+                target.compilations["main"].defaultSourceSet.dependsOn(webMain)
+                target.compilations["test"].defaultSourceSet.dependsOn(webTest)
             }
         }
     }
 }
 
+kotlin {
+    watchosArm64()
+    watchosArm32()
+    watchosX64()
+    watchosSimulatorArm64()
+    tvosArm64()
+    tvosX64()
+    tvosSimulatorArm64()
+    mingwX64()
+}
+
 dependencies {
-    api(libs.jspecify)
     lintPublish(project(":lifecycle:lifecycle-runtime-lint"))
 }
 

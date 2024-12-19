@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
     id("AndroidXPlugin")
+    id("JetbrainsAndroidXPlugin")
 }
 
 androidXMultiplatform {
@@ -37,6 +38,8 @@ androidXMultiplatform {
     mac()
     linux()
     ios()
+    js()
+    wasm()
 
     kotlin {
         explicitApi = ExplicitApiMode.Strict
@@ -49,15 +52,12 @@ androidXMultiplatform {
             dependencies {
                 api(libs.kotlinStdlib)
                 api(libs.kotlinCoroutinesCore)
-                api("androidx.annotation:annotation:1.8.1")
+                api("org.jetbrains.compose.annotation-internal:annotation:1.7.1")
             }
         }
 
         jvmMain {
             dependsOn(commonMain)
-            dependencies {
-                api(libs.jspecify)
-            }
         }
 
         jvmTest {
@@ -83,6 +83,17 @@ androidXMultiplatform {
             }
         }
     }
+}
+
+kotlin {
+    watchosArm64()
+    watchosArm32()
+    watchosX64()
+    watchosSimulatorArm64()
+    tvosArm64()
+    tvosX64()
+    tvosSimulatorArm64()
+    mingwX64()
 }
 
 androidx {
