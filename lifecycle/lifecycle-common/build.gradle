@@ -21,20 +21,14 @@
  * Please use that script when creating a new project, rather than copying an existing project and
  * modifying its settings.
  */
-
-
-import androidx.build.JetbrainsAndroidXPlugin
+import androidx.build.LibraryType
 import androidx.build.PlatformIdentifier
-import androidx.build.Publish
 import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
     id("AndroidXPlugin")
-    id("JetbrainsAndroidXPlugin")
 }
-
-JetbrainsAndroidXPlugin.applyAndConfigure(project)
 
 androidXMultiplatform {
     jvm {
@@ -43,43 +37,31 @@ androidXMultiplatform {
     mac()
     linux()
     ios()
-    js()
-    wasm()
+
+    kotlin {
+        explicitApi = ExplicitApiMode.Strict
+    }
 
     defaultPlatform(PlatformIdentifier.JVM)
-}
-
-kotlin {
-    js {
-        browser()
-    }
-    wasmJs()
-
-    watchosArm64()
-    watchosArm32()
-    watchosX64()
-    watchosSimulatorArm64()
-    tvosArm64()
-    tvosX64()
-    tvosSimulatorArm64()
-    mingwX64()
-
-    explicitApi = ExplicitApiMode.Strict
 
     sourceSets {
         commonMain {
             dependencies {
                 api(libs.kotlinStdlib)
                 api(libs.kotlinCoroutinesCore)
-                api("org.jetbrains.compose.annotation-internal:annotation:1.7.1")
+                api("androidx.annotation:annotation:1.8.1")
             }
         }
 
         jvmMain {
             dependsOn(commonMain)
+            dependencies {
+                api(libs.jspecify)
+            }
         }
 
         jvmTest {
+            dependsOn(commonTest)
             dependencies {
                 implementation(libs.junit)
                 implementation(libs.mockitoCore4)
@@ -93,7 +75,7 @@ kotlin {
             }
         }
 
-        targets.all { target ->
+        targets.configureEach { target ->
             if (target.platformType !in [KotlinPlatformType.jvm, KotlinPlatformType.common]) {
                 target.compilations["main"].defaultSourceSet {
                     dependsOn(nonJvmCommonMain)
@@ -105,12 +87,8 @@ kotlin {
 
 androidx {
     name = "Lifecycle-Common"
-    publish = Publish.SNAPSHOT_AND_RELEASE
+    type = LibraryType.PUBLISHED_LIBRARY
     inceptionYear = "2017"
     description = "Android Lifecycle-Common"
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    metalavaK2UastEnabled = false
 }

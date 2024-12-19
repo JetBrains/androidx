@@ -6,59 +6,35 @@
  * modifying its settings.
  */
 
-import androidx.build.JetbrainsAndroidXPlugin
-import androidx.build.KmpPlatformsKt
+import androidx.build.LibraryType
 import androidx.build.PlatformIdentifier
-import androidx.build.Publish
 import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
     id("AndroidXPlugin")
     id("com.android.library")
-    id("JetbrainsAndroidXPlugin")
+    id("androidx.baselineprofile")
 }
-
-JetbrainsAndroidXPlugin.applyAndConfigure(project)
-
-def jsEnabled = KmpPlatformsKt.enableJs(project)
-def wasmEnabled = KmpPlatformsKt.enableWasm(project)
-
 androidXMultiplatform {
     android()
     desktop()
     mac()
     linux()
     ios()
-    js()
-    wasm()
+
+    kotlin {
+        explicitApi = ExplicitApiMode.Strict
+    }
 
     defaultPlatform(PlatformIdentifier.ANDROID)
-}
-
-kotlin {
-    js {
-        browser()
-    }
-    wasmJs()
-
-    watchosArm64()
-    watchosArm32()
-    watchosX64()
-    watchosSimulatorArm64()
-    tvosArm64()
-    tvosX64()
-    tvosSimulatorArm64()
-    mingwX64()
-
-    explicitApi = ExplicitApiMode.Strict
 
     sourceSets {
         commonMain {
             dependencies {
                 api(libs.kotlinStdlib)
                 api(project(":lifecycle:lifecycle-common"))
-                api("org.jetbrains.compose.annotation-internal:annotation:1.7.1")
+                api("androidx.annotation:annotation:1.8.1")
             }
         }
 
@@ -94,8 +70,9 @@ kotlin {
             dependsOn(jvmCommonMain)
             dependencies {
                 api(libs.kotlinCoroutinesAndroid)
+                implementation(project(":core:core-viewtree"))
                 implementation("androidx.arch.core:core-runtime:2.2.0")
-                implementation("androidx.profileinstaller:profileinstaller:1.3.1")
+                implementation("androidx.profileinstaller:profileinstaller:1.4.0")
             }
         }
 
@@ -110,6 +87,7 @@ kotlin {
         androidInstrumentedTest {
             dependsOn(commonTest)
             dependencies {
+                implementation(project(":core:core-viewtree"))
                 implementation(libs.junit)
                 implementation(libs.truth)
                 implementation(libs.testExtJunit)
@@ -119,8 +97,9 @@ kotlin {
             }
         }
 
-        nonJvmCommonMain.dependsOn(commonMain)
-        nonJvmCommonTest.dependsOn(commonTest)
+        nonJvmCommonMain {
+            dependsOn(commonMain)
+        }
 
         nativeMain {
             dependsOn(nonJvmCommonMain)
@@ -129,11 +108,8 @@ kotlin {
             languageSettings.optIn("kotlin.experimental.ExperimentalNativeApi")
         }
 
-        nativeTest.dependsOn(nonJvmCommonTest)
-
-        if (jsEnabled || wasmEnabled) {
-            webMain.dependsOn(nonJvmCommonMain)
-            webTest.dependsOn(nonJvmCommonTest)
+        nativeTest {
+            dependsOn(commonTest)
         }
 
         targets.configureEach { target ->
@@ -147,18 +123,13 @@ kotlin {
                 target.compilations["test"].defaultSourceSet {
                     dependsOn(nativeTest)
                 }
-            } else if (target.platformType in [
-                    KotlinPlatformType.js,
-                    KotlinPlatformType.wasm
-            ]) {
-                target.compilations["main"].defaultSourceSet.dependsOn(webMain)
-                target.compilations["test"].defaultSourceSet.dependsOn(webTest)
             }
         }
     }
 }
 
 dependencies {
+    api(libs.jspecify)
     lintPublish(project(":lifecycle:lifecycle-runtime-lint"))
 }
 
@@ -177,7 +148,8 @@ android {
 
 androidx {
     name = "Lifecycle Runtime"
-    publish = Publish.SNAPSHOT_AND_RELEASE
+    type = LibraryType.PUBLISHED_LIBRARY
     inceptionYear "2017"
     description "Android Lifecycle Runtime"
+    metalavaK2UastEnabled = false
 }

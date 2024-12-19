@@ -76,14 +76,14 @@ internal object LegacySavedStateHandleController {
     internal class OnRecreation : SavedStateRegistry.AutoRecreated {
         override fun onRecreated(owner: SavedStateRegistryOwner) {
             check(owner is ViewModelStoreOwner) {
-                ("Internal error: OnRecreation should be registered only on components " +
-                    "that implement ViewModelStoreOwner")
+                "Internal error: OnRecreation should be registered only on components " +
+                    "that implement ViewModelStoreOwner. Received owner: $owner"
             }
-            val viewModelStore = (owner as ViewModelStoreOwner).viewModelStore
+            val viewModelStore = owner.viewModelStore
             val savedStateRegistry = owner.savedStateRegistry
             for (key in viewModelStore.keys()) {
-                val viewModel = viewModelStore[key]
-                attachHandleIfNeeded(viewModel!!, savedStateRegistry, owner.lifecycle)
+                val viewModel = viewModelStore[key] ?: continue
+                attachHandleIfNeeded(viewModel, savedStateRegistry, owner.lifecycle)
             }
             if (viewModelStore.keys().isNotEmpty()) {
                 savedStateRegistry.runOnNextRecreation(OnRecreation::class.java)

@@ -22,10 +22,8 @@
  * modifying its settings.
  */
 
-import androidx.build.JetbrainsAndroidXPlugin
-import androidx.build.KmpPlatformsKt
+import androidx.build.LibraryType
 import androidx.build.PlatformIdentifier
-import androidx.build.Publish
 import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.konan.target.Family
@@ -33,13 +31,7 @@ import org.jetbrains.kotlin.konan.target.Family
 plugins {
     id("AndroidXPlugin")
     id("com.android.library")
-    id("JetbrainsAndroidXPlugin")
 }
-
-JetbrainsAndroidXPlugin.applyAndConfigure(project)
-
-def jsEnabled = KmpPlatformsKt.enableJs(project)
-def wasmEnabled = KmpPlatformsKt.enableWasm(project)
 
 androidXMultiplatform {
     android()
@@ -47,29 +39,12 @@ androidXMultiplatform {
     mac()
     linux()
     ios()
-    js()
-    wasm()
+
+    kotlin {
+        explicitApi = ExplicitApiMode.Strict
+    }
 
     defaultPlatform(PlatformIdentifier.ANDROID)
-}
-
-kotlin {
-    js {
-        browser()
-    }
-    wasmJs()
-
-    watchosArm64()
-    watchosArm32()
-    watchosX64()
-    watchosSimulatorArm64()
-    tvosArm64()
-    tvosX64()
-    tvosSimulatorArm64()
-    // TODO: mingwX64 requires Lock actual implementation.
-    //  Or copy approach from :collection:collection - use unstable atomicFu
-
-    explicitApi = ExplicitApiMode.Strict
 
     sourceSets {
         configureEach {
@@ -78,7 +53,7 @@ kotlin {
 
         commonMain {
             dependencies {
-                api("org.jetbrains.compose.annotation-internal:annotation:1.7.1")
+                api("androidx.annotation:annotation:1.8.1")
                 api(libs.kotlinStdlib)
                 api(libs.kotlinCoroutinesCore)
             }
@@ -107,6 +82,7 @@ kotlin {
             dependsOn(jvmCommonMain)
             dependencies {
                 api(libs.kotlinCoroutinesAndroid)
+                implementation(projectOrArtifact(":core:core-viewtree"))
             }
         }
 
@@ -133,28 +109,17 @@ kotlin {
         darwinMain.dependsOn(nativeMain)
         linuxMain.dependsOn(nativeMain)
 
-        if (jsEnabled || wasmEnabled) {
-            webMain.dependsOn(nonJvmCommonMain)
-        }
-
         targets.configureEach { target ->
             if (target.platformType == KotlinPlatformType.native) {
                 target.compilations["main"].defaultSourceSet {
                     def konanTargetFamily = target.konanTarget.family
-                    if (konanTargetFamily.appleFamily) {
+                    if (konanTargetFamily == Family.OSX || konanTargetFamily == Family.IOS) {
                         dependsOn(darwinMain)
                     } else if (konanTargetFamily == Family.LINUX) {
                         dependsOn(linuxMain)
                     } else {
                         throw new GradleException("unknown native target ${target}")
                     }
-                }
-            } else if (target.platformType in [
-                    KotlinPlatformType.js,
-                    KotlinPlatformType.wasm
-            ]) {
-                target.compilations["main"].defaultSourceSet {
-                    dependsOn(webMain)
                 }
             }
         }
@@ -170,7 +135,8 @@ android {
 
 androidx {
     name = "Lifecycle ViewModel"
-    publish = Publish.SNAPSHOT_AND_RELEASE
+    type = LibraryType.PUBLISHED_LIBRARY
     inceptionYear = "2017"
     description = "Android Lifecycle ViewModel"
+    metalavaK2UastEnabled = false
 }
