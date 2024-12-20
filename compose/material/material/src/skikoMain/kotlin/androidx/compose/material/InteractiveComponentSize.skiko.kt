@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package androidx.compose.foundation.gestures
+package androidx.compose.material
 
-actual inline fun assertOnJvm(statement: Boolean, message: () -> String) {
-    require(statement, message)
-}
+internal actual inline fun identityHashCode(value: Any): Int =
+    androidx.compose.material.internal.identityHashCode(value)

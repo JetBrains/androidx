@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
-package androidx.compose.material.internal
+package androidx.compose.material3
 
-internal expect fun identityHashCode(instance: Any?): Int
+internal actual inline fun identityHashCode(value: Any): Int =
+    androidx.compose.material3.internal.identityHashCode(value)
