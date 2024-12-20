@@ -657,7 +657,6 @@ public class KeyframesSpec<T>(public val config: KeyframesSpecConfig<T>) :
         if (!config.keyframes.contains(config.durationMillis)) {
             timestamps.add(config.durationMillis)
         }
-
         timestamps.sort()
 
         return VectorizedKeyframesSpec(
@@ -772,7 +771,6 @@ public class KeyframesWithSplineSpec<T>(
         if (!keyframes.contains(config.durationMillis)) {
             timestamps.add(config.durationMillis)
         }
-
         timestamps.sort()
         return VectorizedMonoSplineKeyframesSpec(
             timestamps = timestamps,

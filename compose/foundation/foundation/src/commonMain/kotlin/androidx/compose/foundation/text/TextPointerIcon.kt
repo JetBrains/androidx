@@ -18,9 +18,5 @@ package androidx.compose.foundation.text
 
 import androidx.compose.ui.input.pointer.PointerIcon
 
-// TODO Replace to PointerIcon.Text. No need for expect/actual
 internal expect val textPointerIcon: PointerIcon
-
-// TODO Add appropriate property to PointerIcon interface instead of bypassing abstraction layer.
-//  https://youtrack.jetbrains.com/issue/CMP-7145/Properly-adopt-stylus-handwriting-hover-icon
 internal expect val handwritingPointerIcon: PointerIcon

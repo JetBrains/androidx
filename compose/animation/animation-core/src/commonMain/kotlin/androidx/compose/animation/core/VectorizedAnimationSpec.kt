@@ -250,7 +250,6 @@ internal constructor(
                 if (!keyframes.containsKey(durationMillis)) {
                     times.add(durationMillis)
                 }
-
                 times.sort()
                 return@run times
             },

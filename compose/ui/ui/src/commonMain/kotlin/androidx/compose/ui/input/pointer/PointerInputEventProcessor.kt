@@ -62,7 +62,6 @@ internal class PointerInputEventProcessor(val root: LayoutNode) {
      * @see ProcessResult
      * @see PointerInputEvent
      */
-    @OptIn(InternalCoreApi::class)
     fun process(
         @OptIn(InternalCoreApi::class) pointerEvent: PointerInputEvent,
         positionCalculator: PositionCalculator,

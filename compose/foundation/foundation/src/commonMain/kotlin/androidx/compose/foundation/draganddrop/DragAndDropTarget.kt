@@ -41,12 +41,12 @@ import androidx.compose.ui.platform.InspectorInfo
 fun Modifier.dragAndDropTarget(
     shouldStartDragAndDrop: (startEvent: DragAndDropEvent) -> Boolean,
     target: DragAndDropTarget,
-): Modifier {
-    return this then DropTargetElement(
-        target = target,
-        shouldStartDragAndDrop = shouldStartDragAndDrop,
-    )
-}
+): Modifier =
+    this then
+        DropTargetElement(
+            target = target,
+            shouldStartDragAndDrop = shouldStartDragAndDrop,
+        )
 
 private class DropTargetElement(
     val shouldStartDragAndDrop: (event: DragAndDropEvent) -> Boolean,

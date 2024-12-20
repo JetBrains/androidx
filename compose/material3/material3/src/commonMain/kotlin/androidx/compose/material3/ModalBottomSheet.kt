@@ -295,8 +295,8 @@ internal fun BoxScope.ModalBottomSheetContent(
                     else Modifier
                 )
                 .draggableAnchors(sheetState.anchoredDraggableState, Orientation.Vertical) {
-                        sheetSize,
-                        constraints ->
+                    sheetSize,
+                    constraints ->
                     val fullHeight = constraints.maxHeight.toFloat()
                     val newAnchors = DraggableAnchors {
                         Hidden at fullHeight
