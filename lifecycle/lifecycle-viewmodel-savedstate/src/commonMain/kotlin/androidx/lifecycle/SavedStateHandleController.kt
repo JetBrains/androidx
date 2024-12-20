@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+@file:OptIn(ExperimentalStdlibApi::class)
+
 package androidx.lifecycle
 
 import androidx.savedstate.SavedStateRegistry
 
-@OptIn(ExperimentalStdlibApi::class)
 internal class SavedStateHandleController(private val key: String, val handle: SavedStateHandle) :
     LifecycleEventObserver, AutoCloseable {
 

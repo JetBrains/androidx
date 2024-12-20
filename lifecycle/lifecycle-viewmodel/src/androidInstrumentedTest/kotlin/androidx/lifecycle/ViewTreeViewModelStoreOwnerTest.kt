@@ -18,10 +18,13 @@ package androidx.lifecycle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.core.viewtree.setViewTreeDisjointParent
 import androidx.kruth.assertWithMessage
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -125,6 +128,53 @@ class ViewTreeViewModelStoreOwnerTest {
         assertWithMessage("grandchild sees owner")
             .that(child.findViewTreeViewModelStoreOwner())
             .isEqualTo(parentFakeOwner)
+    }
+
+    @Test
+    fun disjointParentOwner() {
+        val context = getInstrumentation().context
+        val root = FrameLayout(context)
+        val disjointParent = FrameLayout(context)
+        val parent = FrameLayout(context)
+        val child = View(context)
+
+        root.addView(disjointParent)
+        parent.addView(child)
+        parent.setViewTreeDisjointParent(disjointParent)
+
+        val rootFakeOwner = FakeViewModelStoreOwner()
+        root.setViewTreeViewModelStoreOwner(rootFakeOwner)
+
+        assertEquals(
+            "disjoint parent sees owner",
+            rootFakeOwner,
+            parent.findViewTreeViewModelStoreOwner()
+        )
+        assertEquals(
+            "disjoint child sees owner",
+            rootFakeOwner,
+            child.findViewTreeViewModelStoreOwner()
+        )
+    }
+
+    @Test
+    fun shadowedDisjointParentOwner() {
+        val context = getInstrumentation().context
+        val root = FrameLayout(context)
+        val disjointParent = FrameLayout(context)
+        val parent = FrameLayout(context)
+        val child = View(context)
+
+        root.addView(disjointParent)
+        parent.addView(child)
+        parent.setViewTreeDisjointParent(disjointParent)
+
+        val rootFakeOwner = FakeViewModelStoreOwner()
+        val parentFakeOwner = FakeViewModelStoreOwner()
+        root.setViewTreeViewModelStoreOwner(rootFakeOwner)
+        parent.setViewTreeViewModelStoreOwner(parentFakeOwner)
+
+        assertEquals("child sees owner", parentFakeOwner, child.findViewTreeViewModelStoreOwner())
     }
 
     internal class FakeViewModelStoreOwner : ViewModelStoreOwner {

@@ -15,46 +15,25 @@
  */
 package androidx.lifecycle
 
-import android.os.Bundle
 import androidx.annotation.RestrictTo
 import androidx.lifecycle.LegacySavedStateHandleController.TAG_SAVED_STATE_HANDLE_CONTROLLER
 import androidx.lifecycle.LegacySavedStateHandleController.attachHandleIfNeeded
 import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.savedstate.SavedState
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryOwner
 import kotlin.reflect.KClass
 
-/**
- * Skeleton of androidx.lifecycle.ViewModelProvider.KeyedFactory that creates [SavedStateHandle] for
- * every requested [ViewModel]. The subclasses implement [create] to actually instantiate
- * `androidx.lifecycle.ViewModel`s.
- */
 public actual abstract class AbstractSavedStateViewModelFactory :
     ViewModelProvider.OnRequeryFactory, ViewModelProvider.Factory {
 
     private var savedStateRegistry: SavedStateRegistry? = null
     private var lifecycle: Lifecycle? = null
-    private var defaultArgs: Bundle? = null
+    private var defaultArgs: SavedState? = null
 
-    /**
-     * Constructs this factory.
-     *
-     * When a factory is constructed this way, a component for which [SavedStateHandle] is scoped
-     * must have called [enableSavedStateHandles]. See [CreationExtras.createSavedStateHandle] docs
-     * for more details.
-     */
     actual constructor() {}
 
-    /**
-     * Constructs this factory.
-     *
-     * @param owner [SavedStateRegistryOwner] that will provide restored state for created
-     *   [ViewModels][ViewModel]
-     * @param defaultArgs values from this `Bundle` will be used as defaults by [SavedStateHandle]
-     *   passed in [ViewModels][ViewModel] if there is no previously saved state or previously saved
-     *   state misses a value by such key
-     */
-    actual constructor(owner: SavedStateRegistryOwner, defaultArgs: Bundle?) {
+    actual constructor(owner: SavedStateRegistryOwner, defaultArgs: SavedState?) {
         savedStateRegistry = owner.savedStateRegistry
         lifecycle = owner.lifecycle
         this.defaultArgs = defaultArgs
@@ -70,7 +49,7 @@ public actual abstract class AbstractSavedStateViewModelFactory :
      */
     public override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         val key =
-            extras[ViewModelProvider.VIEW_MODEL_KEY]
+            extras[ViewModelProvider.NewInstanceFactory.VIEW_MODEL_KEY]
                 ?: throw IllegalStateException(
                     "VIEW_MODEL_KEY must always be provided by ViewModelProvider"
                 )
@@ -131,11 +110,11 @@ public actual abstract class AbstractSavedStateViewModelFactory :
      * @param handle a handle to saved state associated with the requested ViewModel
      * @return the newly created ViewModel </T>
      */
-    protected open fun <T : ViewModel> create(
+    protected abstract fun <T : ViewModel> create(
         key: String,
         modelClass: Class<T>,
         handle: SavedStateHandle
-    ): T = unsupportedCreateViewModel()
+    ): T
 
     protected actual open fun <T : ViewModel> create(
         key: String,
@@ -151,9 +130,3 @@ public actual abstract class AbstractSavedStateViewModelFactory :
         }
     }
 }
-
-private fun <VM : ViewModel> unsupportedCreateViewModel(): VM =
-    throw UnsupportedOperationException(
-        "`Factory.create(String, Class, SavedStateHandle)` is not implemented. You may need to " +
-            "override the method and provide a custom implementation."
-    )

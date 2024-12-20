@@ -17,13 +17,14 @@ package androidx.lifecycle
 
 import androidx.core.bundle.Bundle
 import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.savedstate.SavedState
 import androidx.savedstate.SavedStateRegistryOwner
 import kotlin.reflect.KClass
 
+
 /**
- * Skeleton of androidx.lifecycle.ViewModelProvider.KeyedFactory
- * that creates [SavedStateHandle] for every requested [ViewModel].
- * The subclasses implement [create] to actually instantiate
+ * Skeleton of androidx.lifecycle.ViewModelProvider.KeyedFactory that creates [SavedStateHandle] for
+ * every requested [ViewModel]. The subclasses implement [create] to actually instantiate
  * `androidx.lifecycle.ViewModel`s.
  */
 public expect abstract class AbstractSavedStateViewModelFactory :
@@ -32,10 +33,9 @@ public expect abstract class AbstractSavedStateViewModelFactory :
     /**
      * Constructs this factory.
      *
-     * When a factory is constructed this way, a component for which [SavedStateHandle] is
-     * scoped must have called [enableSavedStateHandles].
-     * See [CreationExtras.createSavedStateHandle] docs for more
-     * details.
+     * When a factory is constructed this way, a component for which [SavedStateHandle] is scoped
+     * must have called [enableSavedStateHandles]. See [CreationExtras.createSavedStateHandle] docs
+     * for more details.
      */
     constructor()
 
@@ -43,11 +43,17 @@ public expect abstract class AbstractSavedStateViewModelFactory :
      * Constructs this factory.
      *
      * @param owner [SavedStateRegistryOwner] that will provide restored state for created
-     * [ViewModels][ViewModel]
-     * @param defaultArgs values from this `Bundle` will be used as defaults by
-     * [SavedStateHandle] passed in [ViewModels][ViewModel] if there is no
-     * previously saved state or previously saved state misses a value by such key
+     *   [ViewModels][ViewModel]
+     * @param defaultArgs values from this `Bundle` will be used as defaults by [SavedStateHandle]
+     *   passed in [ViewModels][ViewModel] if there is no previously saved state or previously saved
+     *   state misses a value by such key
      */
+    constructor(
+        owner: SavedStateRegistryOwner,
+        defaultArgs: SavedState?
+    )
+
+    @Deprecated(level = DeprecationLevel.HIDDEN, message = "Use constructor with SavedState")
     constructor(
         owner: SavedStateRegistryOwner,
         defaultArgs: Bundle?

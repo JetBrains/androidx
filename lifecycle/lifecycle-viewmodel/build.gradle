@@ -22,10 +22,8 @@
  * modifying its settings.
  */
 
-import androidx.build.JetbrainsAndroidXPlugin
-import androidx.build.KmpPlatformsKt
+import androidx.build.LibraryType
 import androidx.build.PlatformIdentifier
-import androidx.build.Publish
 import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.konan.target.Family
@@ -36,11 +34,6 @@ plugins {
     id("JetbrainsAndroidXPlugin")
 }
 
-JetbrainsAndroidXPlugin.applyAndConfigure(project)
-
-def jsEnabled = KmpPlatformsKt.enableJs(project)
-def wasmEnabled = KmpPlatformsKt.enableWasm(project)
-
 androidXMultiplatform {
     android()
     desktop()
@@ -50,26 +43,11 @@ androidXMultiplatform {
     js()
     wasm()
 
-    defaultPlatform(PlatformIdentifier.ANDROID)
-}
-
-kotlin {
-    js {
-        browser()
+    kotlin {
+        explicitApi = ExplicitApiMode.Strict
     }
-    wasmJs()
 
-    watchosArm64()
-    watchosArm32()
-    watchosX64()
-    watchosSimulatorArm64()
-    tvosArm64()
-    tvosX64()
-    tvosSimulatorArm64()
-    // TODO: mingwX64 requires Lock actual implementation.
-    //  Or copy approach from :collection:collection - use unstable atomicFu
-
-    explicitApi = ExplicitApiMode.Strict
+    defaultPlatform(PlatformIdentifier.ANDROID)
 
     sourceSets {
         configureEach {
@@ -107,6 +85,7 @@ kotlin {
             dependsOn(jvmCommonMain)
             dependencies {
                 api(libs.kotlinCoroutinesAndroid)
+                implementation("androidx.core:core-viewtree:1.0.0-alpha01")
             }
         }
 
@@ -132,10 +111,7 @@ kotlin {
         nativeMain.dependsOn(nonJvmCommonMain)
         darwinMain.dependsOn(nativeMain)
         linuxMain.dependsOn(nativeMain)
-
-        if (jsEnabled || wasmEnabled) {
-            webMain.dependsOn(nonJvmCommonMain)
-        }
+        webMain.dependsOn(nonJvmCommonMain)
 
         targets.configureEach { target ->
             if (target.platformType == KotlinPlatformType.native) {
@@ -161,6 +137,16 @@ kotlin {
     }
 }
 
+kotlin {
+    watchosArm64()
+    watchosArm32()
+    watchosX64()
+    watchosSimulatorArm64()
+    tvosArm64()
+    tvosX64()
+    tvosSimulatorArm64()
+}
+
 android {
     buildTypes.configureEach {
         consumerProguardFiles "proguard-rules.pro"
@@ -170,7 +156,8 @@ android {
 
 androidx {
     name = "Lifecycle ViewModel"
-    publish = Publish.SNAPSHOT_AND_RELEASE
+    type = LibraryType.PUBLISHED_LIBRARY
     inceptionYear = "2017"
     description = "Android Lifecycle ViewModel"
+    metalavaK2UastEnabled = false
 }

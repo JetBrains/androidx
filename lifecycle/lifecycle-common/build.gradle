@@ -21,11 +21,8 @@
  * Please use that script when creating a new project, rather than copying an existing project and
  * modifying its settings.
  */
-
-
-import androidx.build.JetbrainsAndroidXPlugin
+import androidx.build.LibraryType
 import androidx.build.PlatformIdentifier
-import androidx.build.Publish
 import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
@@ -33,8 +30,6 @@ plugins {
     id("AndroidXPlugin")
     id("JetbrainsAndroidXPlugin")
 }
-
-JetbrainsAndroidXPlugin.applyAndConfigure(project)
 
 androidXMultiplatform {
     jvm {
@@ -46,25 +41,11 @@ androidXMultiplatform {
     js()
     wasm()
 
-    defaultPlatform(PlatformIdentifier.JVM)
-}
-
-kotlin {
-    js {
-        browser()
+    kotlin {
+        explicitApi = ExplicitApiMode.Strict
     }
-    wasmJs()
 
-    watchosArm64()
-    watchosArm32()
-    watchosX64()
-    watchosSimulatorArm64()
-    tvosArm64()
-    tvosX64()
-    tvosSimulatorArm64()
-    mingwX64()
-
-    explicitApi = ExplicitApiMode.Strict
+    defaultPlatform(PlatformIdentifier.JVM)
 
     sourceSets {
         commonMain {
@@ -80,6 +61,7 @@ kotlin {
         }
 
         jvmTest {
+            dependsOn(commonTest)
             dependencies {
                 implementation(libs.junit)
                 implementation(libs.mockitoCore4)
@@ -93,7 +75,7 @@ kotlin {
             }
         }
 
-        targets.all { target ->
+        targets.configureEach { target ->
             if (target.platformType !in [KotlinPlatformType.jvm, KotlinPlatformType.common]) {
                 target.compilations["main"].defaultSourceSet {
                     dependsOn(nonJvmCommonMain)
@@ -103,14 +85,21 @@ kotlin {
     }
 }
 
-androidx {
-    name = "Lifecycle-Common"
-    publish = Publish.SNAPSHOT_AND_RELEASE
-    inceptionYear = "2017"
-    description = "Android Lifecycle-Common"
+kotlin {
+    watchosArm64()
+    watchosArm32()
+    watchosX64()
+    watchosSimulatorArm64()
+    tvosArm64()
+    tvosX64()
+    tvosSimulatorArm64()
+    mingwX64()
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+androidx {
+    name = "Lifecycle-Common"
+    type = LibraryType.PUBLISHED_LIBRARY
+    inceptionYear = "2017"
+    description = "Android Lifecycle-Common"
+    metalavaK2UastEnabled = false
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 The Android Open Source Project
+ * Copyright 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package androidx.lifecycle
 
 import androidx.core.bundle.Bundle
 import androidx.lifecycle.ViewModelProvider.Companion.VIEW_MODEL_KEY
 import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.savedstate.SavedState
 import androidx.savedstate.SavedStateRegistryOwner
 import kotlin.reflect.KClass
 
+
 public actual abstract class AbstractSavedStateViewModelFactory :
     ViewModelProvider.Factory {
-    private var lifecycle: Lifecycle? = null
-    private var defaultArgs: Bundle? = null
 
-    actual constructor() {}
+    actual constructor()
 
     actual constructor(
         owner: SavedStateRegistryOwner,
+        defaultArgs: SavedState?
+    )
+
+    @Deprecated(level = DeprecationLevel.HIDDEN, message = "Use constructor with SavedState")
+    actual constructor(
+        owner: SavedStateRegistryOwner,
         defaultArgs: Bundle?
-    ) {
-        lifecycle = owner.lifecycle
-        this.defaultArgs = defaultArgs
-    }
+    )
 
     /**
      * {@inheritDoc}

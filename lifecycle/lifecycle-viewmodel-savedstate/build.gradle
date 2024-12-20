@@ -22,59 +22,53 @@
  * modifying its settings.
  */
 
-import androidx.build.JetbrainsAndroidXPlugin
+import androidx.build.LibraryType
 import androidx.build.PlatformIdentifier
-import androidx.build.Publish
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
     id("AndroidXPlugin")
     id("com.android.library")
+    alias(libs.plugins.kotlinSerialization)
     id("JetbrainsAndroidXPlugin")
 }
-
-JetbrainsAndroidXPlugin.applyAndConfigure(project)
 
 androidXMultiplatform {
     android()
     desktop()
-    mac()
-    linux()
     ios()
+    linux()
+    mac()
     js()
     wasm()
 
     defaultPlatform(PlatformIdentifier.ANDROID)
-}
-
-kotlin {
-    js {
-        browser()
-    }
-    wasmJs()
-
-    watchosArm64()
-    watchosArm32()
-    watchosX64()
-    watchosSimulatorArm64()
-    tvosArm64()
-    tvosX64()
-    tvosSimulatorArm64()
 
     sourceSets {
         commonMain {
             dependencies {
                 api("org.jetbrains.compose.annotation-internal:annotation:1.7.1")
-                api(project(":core:core-bundle"))
-                api(project(":lifecycle:lifecycle-common"))
+                api(project(":savedstate:savedstate"))
                 api(project(":lifecycle:lifecycle-viewmodel"))
-                api("org.jetbrains.androidx.savedstate:savedstate:1.2.2")
+                implementation("org.jetbrains.androidx.core:core-bundle:1.1.0-alpha01")
                 api(libs.kotlinStdlib)
+                api(libs.kotlinCoroutinesCore)
+                api(libs.kotlinSerializationCore)
+            }
+        }
+
+        commonTest {
+            dependencies {
+                implementation project(":lifecycle:lifecycle-runtime")
+                implementation(libs.kotlinCoroutinesTest)
             }
         }
 
         jvmMain {
             dependsOn(commonMain)
+        }
+
+        jvmTest {
+            dependsOn(commonTest)
         }
 
         androidMain {
@@ -86,13 +80,18 @@ kotlin {
             }
         }
 
+        androidUnitTest {
+            dependsOn(jvmTest)
+        }
+
         androidInstrumentedTest {
+            dependsOn(jvmTest)
             dependencies {
-                implementation project(":lifecycle:lifecycle-runtime")
-                implementation("androidx.fragment:fragment:1.3.0")
+                //implementation project(":lifecycle:lifecycle-livedata-core")
+                implementation ("androidx.fragment:fragment:1.3.0")
                 implementation project(":internal-testutils-runtime")
+                implementation(project(":lifecycle:lifecycle-viewmodel"))
                 implementation(libs.truth)
-                implementation(libs.kotlinStdlib)
                 implementation(libs.testExtJunit)
                 implementation(libs.testCore)
                 implementation(libs.testRunner)
@@ -100,38 +99,121 @@ kotlin {
             }
         }
 
-        jbMain.dependsOn(commonMain)
-        nonJvmMain.dependsOn(jbMain)
-        desktopMain {
-            dependsOn(jvmMain)
-            dependsOn(jbMain)
+        nonAndroidMain {
+            dependsOn(commonMain)
         }
 
-        targets.all { target ->
-            if (target.platformType !in [
-                    KotlinPlatformType.androidJvm,
-                    KotlinPlatformType.jvm,
-                    KotlinPlatformType.common
-            ]) {
+        nonAndroidTest {
+            dependsOn(commonTest)
+        }
+
+        desktopMain {
+            dependsOn(jvmMain)
+            dependsOn(nonAndroidMain)
+        }
+
+        desktopTest {
+            dependsOn(jvmTest)
+            dependsOn(nonAndroidTest)
+        }
+
+        nonJvmMain {
+            dependsOn(nonAndroidMain)
+        }
+
+        nonJvmTest {
+            dependsOn(nonAndroidTest)
+        }
+
+        webMain {
+            dependsOn(nonJvmMain)
+        }
+
+        webTest {
+            dependsOn(nonJvmTest)
+        }
+
+        nativeMain {
+            dependsOn(nonJvmMain)
+        }
+
+        nativeTest {
+            dependsOn(nonJvmTest)
+        }
+
+        darwinMain {
+            dependsOn(nativeMain)
+        }
+
+        darwinTest {
+            dependsOn(nativeTest)
+        }
+
+        linuxMain {
+            dependsOn(nativeMain)
+        }
+
+        linuxTest {
+            dependsOn(nativeTest)
+        }
+
+        targets.configureEach { target ->
+            if (target.platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.native) {
                 target.compilations["main"].defaultSourceSet {
-                    dependsOn(nonJvmMain)
+                    def konanTargetFamily = target.konanTarget.family
+                    if (konanTargetFamily.appleFamily) {
+                        dependsOn(darwinMain)
+                    } else if (konanTargetFamily == org.jetbrains.kotlin.konan.target.Family.LINUX) {
+                        dependsOn(linuxMain)
+                    } else {
+                        throw new GradleException("unknown native target ${target}")
+                    }
                 }
+                target.compilations["test"].defaultSourceSet {
+                    def konanTargetFamily = target.konanTarget.family
+                    if (konanTargetFamily.appleFamily) {
+                        dependsOn(darwinTest)
+                    } else if (konanTargetFamily == org.jetbrains.kotlin.konan.target.Family.LINUX) {
+                        dependsOn(linuxTest)
+                    } else {
+                        throw new GradleException("unknown native target ${target}")
+                    }
+                }
+            } else if (target.platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.js ||
+                    target.platformType == org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.wasm
+            ) {
+                target.compilations["main"].defaultSourceSet.dependsOn(webMain)
+                target.compilations["test"].defaultSourceSet.dependsOn(webTest)
             }
         }
     }
 }
 
+kotlin {
+    watchosArm64()
+    watchosArm32()
+    watchosX64()
+    watchosSimulatorArm64()
+    tvosArm64()
+    tvosX64()
+    tvosSimulatorArm64()
+}
+
 android {
-    buildTypes.all {
+    buildTypes.configureEach {
         consumerProguardFiles("proguard-rules.pro")
     }
     namespace "androidx.lifecycle.viewmodel.savedstate"
+    experimentalProperties["android.lint.useK2Uast"] = false // TODO(b/345531033)
 }
 
 androidx {
     name = "Lifecycle ViewModel with SavedState"
-    publish = Publish.SNAPSHOT_AND_RELEASE
+    type = LibraryType.PUBLISHED_LIBRARY
     inceptionYear = "2018"
     description = "Android Lifecycle ViewModel"
-    metalavaK2UastEnabled = true
+    legacyDisableKotlinStrictApiMode = true
+    //samples(project(":lifecycle:lifecycle-viewmodel-savedstate-samples"))
+    metalavaK2UastEnabled = false // TODO(b/324624680)
+    //kotlinTarget = KotlinTarget.KOTLIN_1_9
 }

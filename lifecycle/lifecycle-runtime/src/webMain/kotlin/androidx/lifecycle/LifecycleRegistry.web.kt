@@ -16,5 +16,6 @@
 
 package androidx.lifecycle
 
-internal actual fun isMainThread(): Boolean =
-    true
+internal actual fun isMainThread(): Boolean {
+    return true
+}
