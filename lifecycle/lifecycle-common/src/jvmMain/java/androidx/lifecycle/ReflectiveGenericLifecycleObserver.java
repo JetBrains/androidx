@@ -16,9 +16,8 @@
 
 package androidx.lifecycle;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.Lifecycle.Event;
-
-import org.jspecify.annotations.NonNull;
 
 /**
  * An internal implementation of {@link LifecycleObserver} that relies on reflection.

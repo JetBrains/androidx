@@ -16,7 +16,7 @@
 
 package androidx.lifecycle;
 
-import org.jspecify.annotations.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * @deprecated Use {@code androidx.appcompat.app.AppCompatActivity}

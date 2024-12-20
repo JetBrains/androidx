@@ -16,7 +16,7 @@
 
 package androidx.lifecycle;
 
-import org.jspecify.annotations.Nullable;
+import androidx.annotation.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -105,7 +105,7 @@ final class ClassesInfoCache {
         }
     }
 
-    private CallbackInfo createInfo(Class<?> klass, Method @Nullable [] declaredMethods) {
+    private CallbackInfo createInfo(Class<?> klass, @Nullable Method[] declaredMethods) {
         Class<?> superclass = klass.getSuperclass();
         Map<MethodReference, Lifecycle.Event> handlerToEvent = new HashMap<>();
         if (superclass != null) {
