@@ -304,3 +304,5 @@ private inline fun dateLocaleOptions(init: Date.LocaleOptions.() -> Unit): Date.
     init(result)
     return result
 }
+
+internal const val MillisecondsIn24HoursDouble = 86400000.0

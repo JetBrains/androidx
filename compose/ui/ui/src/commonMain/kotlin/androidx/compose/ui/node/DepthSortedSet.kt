@@ -47,7 +47,7 @@ internal class DepthSortedSet(private val extraAssertions: Boolean) {
     // Created and used only when extraAssertions == true
     private var mapOfOriginalDepth: MutableObjectIntMap<LayoutNode>? = null
 
-    private val set = SortedSet(DepthComparator)
+    private val set = TreeSet(DepthComparator)
 
     fun contains(node: LayoutNode): Boolean {
         val contains = set.contains(node)

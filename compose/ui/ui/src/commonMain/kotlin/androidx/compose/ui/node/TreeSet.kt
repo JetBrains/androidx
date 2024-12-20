@@ -16,5 +16,14 @@
 
 package androidx.compose.ui.node
 
-internal actual class SortedSet<E> actual constructor(comparator: Comparator<in E>) :
-    java.util.TreeSet<E>(comparator)
+internal expect class TreeSet<E>(comparator: Comparator<in E>) {
+    fun add(element: E): Boolean
+
+    fun remove(element: E): Boolean
+
+    fun first(): E
+
+    fun contains(element: E): Boolean
+
+    fun isEmpty(): Boolean
+}

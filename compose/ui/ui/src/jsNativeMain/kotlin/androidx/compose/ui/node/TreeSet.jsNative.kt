@@ -25,7 +25,7 @@ package androidx.compose.ui.node
  * - [add], [remove]: O(logN), due to the heap.
  * - [first], [contains]: O(1), due to the hash map.
  */
-internal actual class SortedSet<E> actual constructor(
+internal actual class TreeSet<E> actual constructor(
     private val comparator: Comparator<in E>
 ) {
 
