@@ -1,6 +1,7 @@
 public abstract class androidx/lifecycle/AbstractSavedStateViewModelFactory : androidx/lifecycle/ViewModelProvider$Factory {
 	public fun <init> ()V
-	public fun <init> (Landroidx/savedstate/SavedStateRegistryOwner;Landroidx/core/bundle/Bundle;)V
+	public synthetic fun <init> (Landroidx/savedstate/SavedStateRegistryOwner;Landroidx/core/bundle/Bundle;)V
+	public fun <init> (Landroidx/savedstate/SavedStateRegistryOwner;Landroidx/savedstate/SavedState;)V
 	protected fun create (Ljava/lang/String;Lkotlin/reflect/KClass;Landroidx/lifecycle/SavedStateHandle;)Landroidx/lifecycle/ViewModel;
 	public fun create (Lkotlin/reflect/KClass;Landroidx/lifecycle/viewmodel/CreationExtras;)Landroidx/lifecycle/ViewModel;
 }
@@ -11,8 +12,10 @@ public final class androidx/lifecycle/SavedStateHandle {
 	public fun <init> (Ljava/util/Map;)V
 	public final fun clearSavedStateProvider (Ljava/lang/String;)V
 	public final fun contains (Ljava/lang/String;)Z
-	public static final fun createHandle (Landroidx/core/bundle/Bundle;Landroidx/core/bundle/Bundle;)Landroidx/lifecycle/SavedStateHandle;
+	public static final synthetic fun createHandle (Landroidx/core/bundle/Bundle;Landroidx/core/bundle/Bundle;)Landroidx/lifecycle/SavedStateHandle;
+	public static final fun createHandle (Landroidx/savedstate/SavedState;Landroidx/savedstate/SavedState;)Landroidx/lifecycle/SavedStateHandle;
 	public final fun get (Ljava/lang/String;)Ljava/lang/Object;
+	public final fun getMutableStateFlow (Ljava/lang/String;Ljava/lang/Object;)Lkotlinx/coroutines/flow/MutableStateFlow;
 	public final fun getStateFlow (Ljava/lang/String;Ljava/lang/Object;)Lkotlinx/coroutines/flow/StateFlow;
 	public final fun keys ()Ljava/util/Set;
 	public final fun remove (Ljava/lang/String;)Ljava/lang/Object;
@@ -22,7 +25,8 @@ public final class androidx/lifecycle/SavedStateHandle {
 }
 
 public final class androidx/lifecycle/SavedStateHandle$Companion {
-	public final fun createHandle (Landroidx/core/bundle/Bundle;Landroidx/core/bundle/Bundle;)Landroidx/lifecycle/SavedStateHandle;
+	public final synthetic fun createHandle (Landroidx/core/bundle/Bundle;Landroidx/core/bundle/Bundle;)Landroidx/lifecycle/SavedStateHandle;
+	public final fun createHandle (Landroidx/savedstate/SavedState;Landroidx/savedstate/SavedState;)Landroidx/lifecycle/SavedStateHandle;
 	public final fun validateValue (Ljava/lang/Object;)Z
 }
 
@@ -32,5 +36,15 @@ public final class androidx/lifecycle/SavedStateHandleSupport {
 	public static final field VIEW_MODEL_STORE_OWNER_KEY Landroidx/lifecycle/viewmodel/CreationExtras$Key;
 	public static final fun createSavedStateHandle (Landroidx/lifecycle/viewmodel/CreationExtras;)Landroidx/lifecycle/SavedStateHandle;
 	public static final fun enableSavedStateHandles (Landroidx/savedstate/SavedStateRegistryOwner;)V
+}
+
+public final class androidx/lifecycle/SavedStateViewModelFactory : androidx/lifecycle/ViewModelProvider$Factory {
+	public fun <init> ()V
+	public fun create (Lkotlin/reflect/KClass;Landroidx/lifecycle/viewmodel/CreationExtras;)Landroidx/lifecycle/ViewModel;
+}
+
+public final class androidx/lifecycle/serialization/SavedStateHandleDelegatesKt {
+	public static final fun saved (Landroidx/lifecycle/SavedStateHandle;Ljava/lang/String;Lkotlinx/serialization/KSerializer;Lkotlin/jvm/functions/Function0;)Lkotlin/properties/ReadWriteProperty;
+	public static final fun saved (Landroidx/lifecycle/SavedStateHandle;Lkotlinx/serialization/KSerializer;Lkotlin/jvm/functions/Function0;)Lkotlin/properties/ReadWriteProperty;
 }
 
