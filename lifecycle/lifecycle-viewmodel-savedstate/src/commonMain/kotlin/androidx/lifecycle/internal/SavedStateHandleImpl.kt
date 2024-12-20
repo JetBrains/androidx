@@ -20,6 +20,7 @@ import androidx.annotation.MainThread
 import androidx.annotation.RestrictTo
 import androidx.savedstate.SavedStateRegistry.SavedStateProvider
 import androidx.savedstate.savedState
+import kotlin.js.JsName
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -47,6 +48,7 @@ internal class SavedStateHandleImpl(initialState: Map<String, Any?> = emptyMap()
         savedState(initialState = regular)
     }
 
+    @JsName("fun_savedStateProvider")
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
     fun savedStateProvider(): SavedStateProvider = savedStateProvider
 
