@@ -49,6 +49,7 @@ androidXMultiplatform {
                 api("org.jetbrains.compose.annotation-internal:annotation:1.7.1")
                 api(project(":savedstate:savedstate"))
                 api(project(":lifecycle:lifecycle-viewmodel"))
+                implementation("org.jetbrains.androidx.core:core-bundle:1.1.0-alpha01")
                 api(libs.kotlinStdlib)
                 api(libs.kotlinCoroutinesCore)
                 api(libs.kotlinSerializationCore)

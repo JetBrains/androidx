@@ -18,6 +18,7 @@ package androidx.lifecycle
 
 import androidx.annotation.MainThread
 import androidx.annotation.RestrictTo
+import androidx.core.bundle.Bundle
 import androidx.lifecycle.internal.SavedStateHandleImpl
 import androidx.lifecycle.internal.isAcceptableType
 import androidx.savedstate.SavedState
@@ -77,6 +78,30 @@ actual class SavedStateHandle {
     }
 
     actual companion object {
+
+        @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+        @JvmStatic
+        @Suppress("DEPRECATION")
+        @Deprecated(
+            level = DeprecationLevel.HIDDEN,
+            message = "Use createHandle with SavedState instead"
+        )
+        actual fun createHandle(
+            restoredState: Bundle?,
+            defaultState: Bundle?,
+        ): SavedStateHandle {
+            val initialState = restoredState ?: defaultState
+
+            // If there is no restored state or default state, an empty SavedStateHandle is created.
+            if (initialState == null) return SavedStateHandle()
+
+            val state = mutableMapOf<String, Any?>()
+            for (key in initialState.keySet()) {
+                state[key as String] = initialState[key]
+            }
+
+            return SavedStateHandle(initialState = state)
+        }
 
         @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
         @JvmStatic
