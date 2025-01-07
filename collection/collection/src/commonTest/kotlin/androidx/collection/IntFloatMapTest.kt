@@ -663,6 +663,10 @@ internal class IntFloatMapTest {
 
         map2[1] = 1f
         assertEquals(map, map2)
+
+        // Same number of items but different keys to test that looking up
+        // a non-existing entry doesn't throw during equals()
+        assertNotEquals(mutableIntFloatMapOf(1, 1f, 2, 2f), mutableIntFloatMapOf(1, 1f, 3, 2f))
     }
 
     @Test

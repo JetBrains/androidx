@@ -663,6 +663,10 @@ internal class IntLongMapTest {
 
         map2[1] = 1L
         assertEquals(map, map2)
+
+        // Same number of items but different keys to test that looking up
+        // a non-existing entry doesn't throw during equals()
+        assertNotEquals(mutableIntLongMapOf(1, 1L, 2, 2L), mutableIntLongMapOf(1, 1L, 3, 2L))
     }
 
     @Test

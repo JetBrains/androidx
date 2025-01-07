@@ -27,6 +27,7 @@ import kotlin.jvm.JvmInline
  * from Java code. Java developers can get the same functionality by using [Pair] or by constructing
  * a custom implementation using Int parameters directly (see [LongLongPair] for an example).
  */
+@Suppress("ValueClassDefinition")
 @JvmInline
 public value class IntIntPair
 internal constructor(

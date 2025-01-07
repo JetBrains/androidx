@@ -682,6 +682,13 @@ internal class ObjectIntTest {
 
         map2["Hello"] = 1
         assertEquals(map, map2)
+
+        // Same number of items but different keys to test that looking up
+        // a non-existing entry doesn't throw during equals()
+        assertNotEquals(
+            mutableObjectIntMapOf("Hello", 1, "World", 2),
+            mutableObjectIntMapOf("Hello", 1, "Foo", 2)
+        )
     }
 
     @Test

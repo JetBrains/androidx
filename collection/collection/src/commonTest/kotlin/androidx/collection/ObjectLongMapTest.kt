@@ -682,6 +682,13 @@ internal class ObjectLongTest {
 
         map2["Hello"] = 1L
         assertEquals(map, map2)
+
+        // Same number of items but different keys to test that looking up
+        // a non-existing entry doesn't throw during equals()
+        assertNotEquals(
+            mutableObjectLongMapOf("Hello", 1L, "World", 2L),
+            mutableObjectLongMapOf("Hello", 1L, "Foo", 2L)
+        )
     }
 
     @Test

@@ -647,6 +647,19 @@ internal class ObjectPValueTest {
 
         map2["Hello"] = 1ValueSuffix
         assertEquals(map, map2)
+
+        // Same number of items but different keys to test that looking up
+        // a non-existing entry doesn't throw during equals()
+        assertNotEquals(
+            mutableObjectPValueMapOf(
+                "Hello", 1ValueSuffix,
+                "World", 2ValueSuffix
+            ),
+            mutableObjectPValueMapOf(
+                "Hello", 1ValueSuffix,
+                "Foo", 2ValueSuffix
+            )
+        )
     }
 
     @Test

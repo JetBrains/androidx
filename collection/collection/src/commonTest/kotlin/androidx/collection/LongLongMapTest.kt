@@ -663,6 +663,10 @@ internal class LongLongMapTest {
 
         map2[1L] = 1L
         assertEquals(map, map2)
+
+        // Same number of items but different keys to test that looking up
+        // a non-existing entry doesn't throw during equals()
+        assertNotEquals(mutableLongLongMapOf(1L, 1L, 2L, 2L), mutableLongLongMapOf(1L, 1L, 3L, 2L))
     }
 
     @Test

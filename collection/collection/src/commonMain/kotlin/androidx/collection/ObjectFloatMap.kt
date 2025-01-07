@@ -547,7 +547,8 @@ public sealed class ObjectFloatMap<K> {
         @Suppress("UNCHECKED_CAST") val o = other as ObjectFloatMap<Any?>
 
         forEach { key, value ->
-            if (value != o[key]) {
+            val index = o.findKeyIndex(key)
+            if (index < 0 || value != o.values[index]) {
                 return false
             }
         }

@@ -1156,15 +1156,6 @@ internal inline fun convertMetadataForCleanup(metadata: LongArray, capacity: Int
     metadata[lastIndex] = metadata[0]
 }
 
-internal fun findEmptySlot(metadata: LongArray, start: Int, end: Int): Int {
-    for (i in start until end) {
-        if (readRawMetadata(metadata, i) == Empty) {
-            return i
-        }
-    }
-    return -1
-}
-
 /**
  * Returns the hash code of [k]. The hash spreads low bits to to minimize collisions in high 25-bits
  * that are used for probing.
@@ -1490,6 +1481,19 @@ private open class MapWrapper<K, V>(private val parent: ScatterMap<K, V>) : Map<
     override fun containsValue(value: V): Boolean = parent.containsValue(value)
 
     override fun containsKey(key: K): Boolean = parent.containsKey(key)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as MapWrapper<*, *>
+
+        return parent == other.parent
+    }
+
+    override fun hashCode(): Int = parent.hashCode()
+
+    override fun toString(): String = parent.toString()
 }
 
 private class MutableMapEntry<K, V>(

@@ -628,6 +628,19 @@ internal class PKeyPValueMapTest {
 
         map2[1KeySuffix] = 1ValueSuffix
         assertEquals(map, map2)
+
+        // Same number of items but different keys to test that looking up
+        // a non-existing entry doesn't throw during equals()
+        assertNotEquals(
+            mutablePKeyPValueMapOf(
+                1KeySuffix, 1ValueSuffix,
+                2KeySuffix, 2ValueSuffix
+            ),
+            mutablePKeyPValueMapOf(
+                1KeySuffix, 1ValueSuffix,
+                3KeySuffix, 2ValueSuffix
+            )
+        )
     }
 
     @Test

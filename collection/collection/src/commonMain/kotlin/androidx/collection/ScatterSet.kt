@@ -425,32 +425,7 @@ public sealed class ScatterSet<E> {
      * [Set] implementation returned by this method tries to be as efficient as possible, the
      * semantics of [Set] may require the allocation of temporary objects for access and iteration.
      */
-    public fun asSet(): Set<E> = SetWrapper()
-
-    internal open inner class SetWrapper : Set<E> {
-        override val size: Int
-            get() = this@ScatterSet._size
-
-        override fun containsAll(elements: Collection<E>): Boolean {
-            elements.forEach { element ->
-                if (!this@ScatterSet.contains(element)) {
-                    return false
-                }
-            }
-            return true
-        }
-
-        @Suppress("KotlinOperator")
-        override fun contains(element: E): Boolean {
-            return this@ScatterSet.contains(element)
-        }
-
-        override fun isEmpty(): Boolean = this@ScatterSet.isEmpty()
-
-        override fun iterator(): Iterator<E> {
-            return iterator { this@ScatterSet.forEach { element -> yield(element) } }
-        }
-    }
+    public fun asSet(): Set<E> = SetWrapper(this)
 }
 
 /**
@@ -1151,47 +1126,84 @@ public class MutableScatterSet<E>(initialCapacity: Int = DefaultScatterCapacity)
      * efficient as possible, the semantics of [MutableSet] may require the allocation of temporary
      * objects for access and iteration.
      */
-    public fun asMutableSet(): MutableSet<E> = MutableSetWrapper()
+    public fun asMutableSet(): MutableSet<E> = MutableSetWrapper(this)
+}
 
-    private inner class MutableSetWrapper : SetWrapper(), MutableSet<E> {
-        override fun add(element: E): Boolean = this@MutableScatterSet.add(element)
+private open class SetWrapper<E>(private val parent: ScatterSet<E>) : Set<E> {
+    override val size: Int
+        get() = parent._size
 
-        override fun addAll(elements: Collection<E>): Boolean =
-            this@MutableScatterSet.addAll(elements)
-
-        override fun clear() {
-            this@MutableScatterSet.clear()
+    override fun containsAll(elements: Collection<E>): Boolean {
+        elements.forEach { element ->
+            if (!parent.contains(element)) {
+                return false
+            }
         }
+        return true
+    }
 
-        override fun iterator(): MutableIterator<E> =
-            object : MutableIterator<E> {
-                val parent = this@MutableScatterSet
-                var current = -1
-                val iterator = iterator {
-                    parent.forEachIndex { index ->
-                        current = index
-                        @Suppress("UNCHECKED_CAST") yield(elements[index] as E)
-                    }
-                }
+    @Suppress("KotlinOperator")
+    override fun contains(element: E): Boolean {
+        return parent.contains(element)
+    }
 
-                override fun hasNext(): Boolean = iterator.hasNext()
+    override fun isEmpty(): Boolean = parent.isEmpty()
 
-                override fun next(): E = iterator.next()
+    override fun iterator(): Iterator<E> {
+        return iterator { parent.forEach { element -> yield(element) } }
+    }
 
-                override fun remove() {
-                    if (current != -1) {
-                        parent.removeElementAt(current)
-                        current = -1
-                    }
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as SetWrapper<*>
+
+        return parent == other.parent
+    }
+
+    override fun hashCode(): Int {
+        return parent.hashCode()
+    }
+
+    override fun toString(): String = parent.toString()
+}
+
+private class MutableSetWrapper<E>(private val parent: MutableScatterSet<E>) :
+    SetWrapper<E>(parent), MutableSet<E> {
+    override fun add(element: E): Boolean = parent.add(element)
+
+    override fun addAll(elements: Collection<E>): Boolean = parent.addAll(elements)
+
+    override fun clear() {
+        parent.clear()
+    }
+
+    override fun iterator(): MutableIterator<E> =
+        object : MutableIterator<E> {
+            var current = -1
+            val iterator = iterator {
+                parent.forEachIndex { index ->
+                    current = index
+                    @Suppress("UNCHECKED_CAST") yield(parent.elements[index] as E)
                 }
             }
 
-        override fun remove(element: E): Boolean = this@MutableScatterSet.remove(element)
+            override fun hasNext(): Boolean = iterator.hasNext()
 
-        override fun retainAll(elements: Collection<E>): Boolean =
-            this@MutableScatterSet.retainAll(elements)
+            override fun next(): E = iterator.next()
 
-        override fun removeAll(elements: Collection<E>): Boolean =
-            this@MutableScatterSet.removeAll(elements)
-    }
+            override fun remove() {
+                if (current != -1) {
+                    parent.removeElementAt(current)
+                    current = -1
+                }
+            }
+        }
+
+    override fun remove(element: E): Boolean = parent.remove(element)
+
+    override fun retainAll(elements: Collection<E>): Boolean = parent.retainAll(elements)
+
+    override fun removeAll(elements: Collection<E>): Boolean = parent.removeAll(elements)
 }

@@ -682,6 +682,13 @@ internal class ObjectFloatTest {
 
         map2["Hello"] = 1f
         assertEquals(map, map2)
+
+        // Same number of items but different keys to test that looking up
+        // a non-existing entry doesn't throw during equals()
+        assertNotEquals(
+            mutableObjectFloatMapOf("Hello", 1f, "World", 2f),
+            mutableObjectFloatMapOf("Hello", 1f, "Foo", 2f)
+        )
     }
 
     @Test

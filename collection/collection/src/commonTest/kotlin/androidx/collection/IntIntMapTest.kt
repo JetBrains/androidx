@@ -663,6 +663,10 @@ internal class IntIntMapTest {
 
         map2[1] = 1
         assertEquals(map, map2)
+
+        // Same number of items but different keys to test that looking up
+        // a non-existing entry doesn't throw during equals()
+        assertNotEquals(mutableIntIntMapOf(1, 1, 2, 2), mutableIntIntMapOf(1, 1, 3, 2))
     }
 
     @Test

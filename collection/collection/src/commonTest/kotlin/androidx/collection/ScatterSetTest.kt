@@ -722,6 +722,77 @@ internal class ScatterSetTest {
     }
 
     @Test
+    @JsName("jsAsSetEquals")
+    fun asSetEquals() {
+        val set = MutableScatterSet<String?>()
+        set += "Hello"
+        set += null
+        set += "Bonjour"
+
+        assertFalse(set.asSet().equals(null))
+        assertFalse(set.asMutableSet().equals(null))
+        assertEquals(set.asSet(), set.asSet())
+        assertEquals(set.asMutableSet(), set.asMutableSet())
+
+        val set2 = MutableScatterSet<String?>()
+        set2 += "Bonjour"
+        set2 += null
+
+        assertNotEquals(set.asSet(), set2.asSet())
+        assertNotEquals(set.asMutableSet(), set2.asMutableSet())
+
+        set2 += "Hello"
+        assertEquals(set.asSet(), set2.asSet())
+        assertEquals(set.asMutableSet(), set2.asMutableSet())
+    }
+
+    @Test
+    fun asSetString() {
+        val set = MutableScatterSet<String?>()
+        assertEquals("[]", set.asSet().toString())
+        assertEquals("[]", set.asMutableSet().toString())
+
+        set += "Hello"
+        set += "Bonjour"
+        assertTrue(
+            "[Hello, Bonjour]" == set.asSet().toString() ||
+                "[Bonjour, Hello]" == set.asSet().toString()
+        )
+        assertTrue(
+            "[Hello, Bonjour]" == set.asMutableSet().toString() ||
+                "[Bonjour, Hello]" == set.asMutableSet().toString()
+        )
+
+        set.clear()
+        set += null
+        assertEquals("[null]", set.asSet().toString())
+        assertEquals("[null]", set.asMutableSet().toString())
+
+        set.clear()
+
+        val selfAsElement = MutableScatterSet<Any>()
+        selfAsElement.add(selfAsElement)
+        assertEquals("[(this)]", selfAsElement.asSet().toString())
+        assertEquals("[(this)]", selfAsElement.asMutableSet().toString())
+    }
+
+    @Test
+    fun asSetHashCodeAddValues() {
+        val set = mutableScatterSetOf<String?>()
+        assertEquals(217, set.asSet().hashCode())
+        assertEquals(217, set.asMutableSet().hashCode())
+        set += null
+        assertEquals(218, set.asSet().hashCode())
+        assertEquals(218, set.asMutableSet().hashCode())
+
+        set += "Hello"
+        val h1 = set.hashCode()
+        set += "World"
+        assertNotEquals(h1, set.asSet().hashCode())
+        assertNotEquals(h1, set.asMutableSet().hashCode())
+    }
+
+    @Test
     fun trim() {
         val set = mutableScatterSetOf("Hello", "World", "Hola", "Mundo", "Bonjour", "Monde")
         val capacity = set.capacity
@@ -756,7 +827,7 @@ internal class ScatterSetTest {
 
     @Test
     fun scatterSetOfEmpty() {
-        assertSame(emptyScatterSet<String>(), scatterSetOf<String>())
+        assertSame(emptyScatterSet(), scatterSetOf<String>())
         assertEquals(0, scatterSetOf<String>().size)
     }
 
