@@ -16,7 +16,6 @@
 
 package androidx.compose.ui.node
 
-import androidx.annotation.VisibleForTesting
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.internal.checkPrecondition
 
@@ -47,11 +46,12 @@ abstract class DelegatingNode : Modifier.Node() {
 
     internal var delegate: Modifier.Node? = null
 
-    @VisibleForTesting
+    // @TestOnly
     internal fun <T : DelegatableNode> delegateUnprotected(delegatableNode: T): T =
         delegate(delegatableNode)
 
-    @VisibleForTesting internal fun undelegateUnprotected(instance: DelegatableNode) = undelegate(instance)
+    // @TestOnly
+    internal fun undelegateUnprotected(instance: DelegatableNode) = undelegate(instance)
 
     override fun setAsDelegateTo(owner: Modifier.Node) {
         super.setAsDelegateTo(owner)

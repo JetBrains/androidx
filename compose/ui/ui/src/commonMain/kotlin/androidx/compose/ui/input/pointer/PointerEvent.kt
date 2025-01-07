@@ -778,8 +778,6 @@ class PointerInputChange(
                 it.consumedDelegate = this.consumedDelegate ?: this
             }
 
-    // Long string concatenation causes atomicfu plugin to be slow/hang.
-    // See https://youtrack.jetbrains.com/issue/KT-65645/Atomicfu-plugin-compilation-hangs-on-a-long-string-concatenation
     override fun toString(): String {
         return "PointerInputChange(id=$id, " +
             "uptimeMillis=$uptimeMillis, " +

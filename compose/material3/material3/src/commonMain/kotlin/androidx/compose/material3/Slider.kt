@@ -2109,7 +2109,7 @@ class SliderState(
     internal val gestureEndAction = {
         if (!isDragging) {
             // check isDragging in case the change is still in progress (touch -> drag case)
-            this.onValueChangeFinished?.invoke()
+            onValueChangeFinished?.invoke()
         }
     }
 

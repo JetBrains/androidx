@@ -236,8 +236,6 @@ expect class GraphicsLayer {
      */
     fun setPathOutline(path: Path)
 
-    // TODO Fix default values on Wasm
-
     /**
      * Configures a rounded rect outline for this [GraphicsLayer]. By default, [topLeft] is set to
      * [Size.Zero] and [size] is set to [Size.Unspecified] indicating that the outline should match

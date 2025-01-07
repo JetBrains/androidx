@@ -276,7 +276,6 @@ internal interface Owner : PositionCalculator {
      * Android, this schedules view tree layout observer callback to be invoked for the underlying
      * platform view hierarchy.
      */
-    // TODO: Move to InteropViewContainer
     @InternalComposeUiApi fun onInteropViewLayoutChange(view: InteropView)
 
     /** The [FocusDirection] represented by the specified keyEvent. */

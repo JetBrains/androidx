@@ -22,7 +22,6 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.ui.text.AnnotatedString.Annotation
 import androidx.compose.ui.text.AnnotatedString.Builder
-import androidx.compose.ui.text.AnnotatedString.Companion.equals
 import androidx.compose.ui.text.AnnotatedString.Range
 import androidx.compose.ui.text.internal.checkPrecondition
 import androidx.compose.ui.text.internal.requirePrecondition
@@ -463,8 +462,8 @@ internal constructor(internal val annotations: List<Range<out Annotation>>?, val
 
         @Deprecated(
             message =
-            "Replaced by the append(Char) method that returns an Appendable. " +
-                "This method must be kept around for binary compatibility.",
+                "Replaced by the append(Char) method that returns an Appendable. " +
+                    "This method must be kept around for binary compatibility.",
             level = DeprecationLevel.HIDDEN
         )
         @Suppress("FunctionName", "unused")
