@@ -27,7 +27,6 @@ import androidx.compose.foundation.FocusedBoundsObserverNode
 import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.OverscrollEffect
-import androidx.compose.foundation.PlatformOptimizedCancellationException
 import androidx.compose.foundation.gestures.Orientation.Horizontal
 import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -1044,6 +1043,4 @@ private suspend fun ScrollingLogic.semanticsScrollBy(offset: Offset): Offset {
     return previousValue.toOffset()
 }
 
-internal class FlingCancellationException() : PlatformOptimizedCancellationException(
-    message = "The fling animation was cancelled"
-)
+internal expect class FlingCancellationException() : CancellationException

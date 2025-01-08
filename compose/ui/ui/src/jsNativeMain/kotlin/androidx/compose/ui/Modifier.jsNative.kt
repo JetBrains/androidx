@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Android Open Source Project
+ * Copyright 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package androidx.compose.ui.input.pointer
+package androidx.compose.ui
 
 import kotlinx.coroutines.CancellationException
 
-actual class PointerEventTimeoutCancellationException actual constructor(
-    time: Long
-) : CancellationException("Timed out waiting for $time ms")
-
-internal actual class PointerInputResetException : CancellationException("Pointer input was reset")
-
-internal actual object CancelTimeoutCancellationException  : CancellationException(message = null)
+internal actual class ModifierNodeDetachedCancellationException :
+    CancellationException("The Modifier.Node was detached")

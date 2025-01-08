@@ -21,6 +21,7 @@ import androidx.compose.animation.core.generateDecayAnimationSpec
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.CancellationException
 
 internal actual fun platformDefaultFlingBehavior(): ScrollableDefaultFlingBehavior =
     DefaultFlingBehavior(
@@ -32,5 +33,14 @@ internal actual fun rememberPlatformDefaultFlingBehavior(): FlingBehavior {
     val flingSpec = rememberSplineBasedDecay<Float>()
     return remember(flingSpec) {
         DefaultFlingBehavior(flingSpec)
+    }
+}
+
+internal actual class FlingCancellationException :
+    CancellationException("The fling animation was cancelled") {
+    override fun fillInStackTrace(): Throwable {
+        // Avoid null.clone() on Android <= 6.0 when accessing stackTrace
+        stackTrace = emptyArray()
+        return this
     }
 }

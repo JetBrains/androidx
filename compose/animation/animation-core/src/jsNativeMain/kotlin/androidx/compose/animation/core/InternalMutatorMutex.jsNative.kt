@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package androidx.compose.material.internal
+package androidx.compose.animation.core
 
 import kotlinx.coroutines.CancellationException
 
-internal actual abstract class PlatformOptimizedCancellationException actual constructor(
-    message: String?
-) : CancellationException(message)
+internal actual class MutationInterruptedException : CancellationException("Mutation interrupted")

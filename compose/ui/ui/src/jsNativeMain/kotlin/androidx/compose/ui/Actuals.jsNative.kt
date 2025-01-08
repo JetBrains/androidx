@@ -34,9 +34,5 @@ internal actual fun InspectorInfo.tryPopulateReflectively(
 ) {
 }
 
-internal actual abstract class PlatformOptimizedCancellationException actual constructor(
-    message: String?
-) : CancellationException(message)
-
 internal actual val PostDelayedDispatcher: CoroutineContext
     get() = Dispatchers.Main

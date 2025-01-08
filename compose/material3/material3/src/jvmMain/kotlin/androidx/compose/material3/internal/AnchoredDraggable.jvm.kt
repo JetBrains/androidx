@@ -18,6 +18,9 @@ package androidx.compose.material3.internal
 
 import kotlinx.coroutines.CancellationException
 
-internal actual abstract class PlatformOptimizedCancellationException actual constructor(
-    message: String?
-) : CancellationException(message)
+internal actual class AnchoredDragFinishedSignal : CancellationException("Anchored drag finished") {
+    override fun fillInStackTrace(): Throwable {
+        stackTrace = emptyArray()
+        return this
+    }
+}

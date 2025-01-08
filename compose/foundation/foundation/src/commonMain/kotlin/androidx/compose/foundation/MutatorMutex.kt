@@ -57,8 +57,7 @@ enum class MutatePriority {
  * lookups to build the exception message and stack trace collection. Remove if these are changed in
  * kotlinx.coroutines.
  */
-private class MutationInterruptedException :
-    PlatformOptimizedCancellationException("Mutation interrupted")
+internal expect class MutationInterruptedException() : CancellationException
 
 /**
  * Mutual exclusion for UI state mutation over time.

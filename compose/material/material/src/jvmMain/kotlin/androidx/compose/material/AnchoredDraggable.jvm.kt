@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package androidx.compose.material3.internal
+package androidx.compose.material
 
 import kotlinx.coroutines.CancellationException
 
-/**
- * Represents a platform-optimized cancellation exception.
- * This allows us to configure exceptions separately on JVM and other platforms.
- */
-internal expect abstract class PlatformOptimizedCancellationException(
-    message: String? = null
-) : CancellationException
+internal actual class AnchoredDragFinishedSignal : CancellationException() {
+    override fun fillInStackTrace(): Throwable {
+        // Avoid null.clone() on Android <= 6.0 when accessing stackTrace
+        stackTrace = emptyArray()
+        return this
+    }
+}

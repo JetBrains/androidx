@@ -521,7 +521,7 @@ private class DefaultPagerNestedScrollConnection(
         source: NestedScrollSource
     ): Offset {
         if (source == NestedScrollSource.SideEffect && available.mainAxis() != 0f) {
-            throw CancellationException("End of scrollable area reached")
+            throw CancellationException("Scroll cancelled")
         }
         return Offset.Zero
     }

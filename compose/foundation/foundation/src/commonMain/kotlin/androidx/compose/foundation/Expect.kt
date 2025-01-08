@@ -16,8 +16,6 @@
 
 package androidx.compose.foundation
 
-import kotlinx.coroutines.CancellationException
-
 internal expect class AtomicReference<V>(value: V) {
     fun get(): V
 
@@ -35,11 +33,3 @@ internal expect class AtomicLong(value: Long) {
 
     fun getAndIncrement(): Long
 }
-
-/**
- * Represents a platform-optimized cancellation exception.
- * This allows us to configure exceptions separately on JVM and other platforms.
- */
-internal expect abstract class PlatformOptimizedCancellationException(
-    message: String? = null
-) : CancellationException

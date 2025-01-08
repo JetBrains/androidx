@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package androidx.compose.material3.internal
+package androidx.compose.animation.core
 
 import kotlinx.coroutines.CancellationException
 
-internal actual abstract class PlatformOptimizedCancellationException actual constructor(
-    message: String?
-) : CancellationException(message) {
-
+internal actual class MutationInterruptedException : CancellationException("Mutation interrupted") {
     override fun fillInStackTrace(): Throwable {
         // Avoid null.clone() on Android <= 6.0 when accessing stackTrace
         stackTrace = emptyArray()
         return this
     }
-
 }
