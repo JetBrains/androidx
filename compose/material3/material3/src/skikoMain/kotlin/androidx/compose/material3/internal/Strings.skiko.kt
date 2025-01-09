@@ -104,7 +104,7 @@ internal actual value class Strings(val value: Int) {
 //  (without creating intermediate strings)
 // TODO current implementation doesn't support sophisticated formatting like %.2f,
 //  but currently we use it only for integers and strings
-internal actual fun String.format(vararg formatArgs: Any?): String {
+internal fun String.format(vararg formatArgs: Any?): String {
     var result = this
     formatArgs.forEachIndexed { index, arg ->
         result = result
@@ -124,6 +124,11 @@ internal actual fun getString(string: Strings): String {
     }
     return translation[string] ?: error("Missing translation for $string")
 }
+
+@Composable
+@ReadOnlyComposable
+internal actual fun getString(string: Strings, vararg formatArgs: Any): String =
+    getString(string).format(*formatArgs)
 
 /**
  * A single translation; should contain all the [Strings].

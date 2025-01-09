@@ -36,3 +36,19 @@ internal actual fun formatWithSkeleton(
         skeleton = skeleton,
     )
 }
+
+internal actual fun datePatternAsInputFormat(localeFormat: String): DateInputFormat {
+    val patternWithDelimiters =
+        localeFormat
+            .replace(Regex("[^dMy/\\-.]"), "")
+            .replace(Regex("d{1,2}"), "dd")
+            .replace(Regex("M{1,2}"), "MM")
+            .replace(Regex("y{1,4}"), "yyyy")
+            .replace("My", "M/y") // Edge case for the Kako locale
+            .removeSuffix(".") // Removes a dot suffix that appears in some formats
+
+    val delimiterRegex = Regex("[/\\-.]")
+    val delimiterMatchResult = delimiterRegex.find(patternWithDelimiters)
+    val delimiter = delimiterMatchResult!!.groups[0]!!.value
+    return DateInputFormat(patternWithDelimiters = patternWithDelimiters, delimiter = delimiter[0])
+}

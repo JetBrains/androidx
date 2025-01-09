@@ -55,7 +55,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.internal.Strings
-import androidx.compose.material3.internal.format
 import androidx.compose.material3.internal.getString
 import androidx.compose.material3.internal.rememberAccessibilityServiceState
 import androidx.compose.material3.tokens.MotionSchemeKeyTokens
@@ -587,7 +586,7 @@ fun rememberTimePickerState(
 
 /** Represents the different configurations for the layout of the Time Picker */
 @Immutable
-@kotlin.jvm.JvmInline
+@JvmInline
 @ExperimentalMaterial3Api
 value class TimePickerLayoutType internal constructor(internal val value: Int) {
 
@@ -1965,7 +1964,7 @@ internal fun numberContentDescription(
             Strings.TimePickerHourSuffix
         }
 
-    return getString(id).format(number)
+    return getString(id, number)
 }
 
 private fun dist(x1: Float, y1: Float, x2: Int, y2: Int): Float {
