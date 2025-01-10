@@ -75,7 +75,14 @@ open class AndroidXComposeMultiplatformExtensionImpl @Inject constructor(
     }
 
     override fun js(): Unit = multiplatformExtension.run {
-        js(KotlinJsCompilerType.IR) {
+       js(KotlinJsCompilerType.IR) {
+            // We have to rename such modules (as npm packages exclusively - this does not affect anything package conventions in the prod artifact
+            // This is a workaround for https://youtrack.jetbrains.com/issue/KT-72362/js-running-tests-leads-to-compilation-error-if-one-modules-name-is-a-special-prefix-to-another-one
+            // TODO: get rid of this workaround as soon as we'll have a fix in tooling
+            if (project.name.endsWith("-test")) {
+                moduleName = project.name + "-npm"
+            }
+
             browser {
                 testTask {
                     it.useKarma {
