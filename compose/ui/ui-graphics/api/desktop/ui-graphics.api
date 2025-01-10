@@ -1000,7 +1000,7 @@ public final class androidx/compose/ui/graphics/SkiaGraphicsContext : androidx/c
 	public fun <init> (Z)V
 	public synthetic fun <init> (ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun createGraphicsLayer ()Landroidx/compose/ui/graphics/layer/GraphicsLayer;
-	public final fun dispose ()V
+	public final fun drawIntoCanvas (Landroidx/compose/ui/graphics/Canvas;Lkotlin/jvm/functions/Function1;)V
 	public fun releaseGraphicsLayer (Landroidx/compose/ui/graphics/layer/GraphicsLayer;)V
 	public final fun setLightingInfo (FFFFFF)V
 	public static synthetic fun setLightingInfo$default (Landroidx/compose/ui/graphics/SkiaGraphicsContext;FFFFFFILjava/lang/Object;)V

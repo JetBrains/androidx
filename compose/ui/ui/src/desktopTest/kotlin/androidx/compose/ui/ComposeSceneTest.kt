@@ -413,7 +413,6 @@ class ComposeSceneTest {
     }
 
     @Test(timeout = 5000)
-    @Ignore("b/271123970 Fails in AOSP. Will be fixed after upstreaming Compose for Desktop")
     fun `rendering of LazyColumn`() = renderingTest(
         width = 40,
         height = 40

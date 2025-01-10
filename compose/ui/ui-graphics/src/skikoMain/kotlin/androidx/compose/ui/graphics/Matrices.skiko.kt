@@ -19,11 +19,34 @@ package androidx.compose.ui.graphics
 import androidx.compose.ui.InternalComposeUiApi
 import kotlin.math.abs
 import org.jetbrains.skia.Matrix33
+import org.jetbrains.skia.Matrix44
 
 internal fun identityMatrix33() = Matrix33(
     1f, 0f, 0f,
     0f, 1f, 0f,
     0f, 0f, 1f
+)
+
+internal fun Matrix.toSkiaMatrix44() = Matrix44(
+    this[0, 0],
+    this[1, 0],
+    this[2, 0],
+    this[3, 0],
+
+    this[0, 1],
+    this[1, 1],
+    this[2, 1],
+    this[3, 1],
+
+    this[0, 2],
+    this[1, 2],
+    this[2, 2],
+    this[3, 2],
+
+    this[0, 3],
+    this[1, 3],
+    this[2, 3],
+    this[3, 3]
 )
 
 @InternalComposeUiApi

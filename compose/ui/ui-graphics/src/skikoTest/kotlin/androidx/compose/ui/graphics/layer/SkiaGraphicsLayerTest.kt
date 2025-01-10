@@ -1025,32 +1025,32 @@ class SkiaGraphicsLayerTest {
             spotShadowAlpha = 0.19f
         )
         val surface = Surface.makeRasterN32Premul(surfaceWidth, surfaceHeight)
-        val canvas = surface.canvas
-        val drawScope = CanvasDrawScope()
-        try {
-            drawScope.draw(
-                Density(1f),
-                LayoutDirection.Ltr,
-                canvas.asComposeCanvas(),
-                Size(surfaceWidth.toFloat(), surfaceHeight.toFloat())
-            ) {
-                drawRect(Color.White)
-                inset(0f, 0f, TEST_WIDTH.toFloat(), TEST_HEIGHT.toFloat()) {
-                    drawRect(Color.Black)
-                    block(graphicsContext)
+        graphicsContext.drawIntoCanvas(surface.canvas.asComposeCanvas()) { canvas ->
+            val drawScope = CanvasDrawScope()
+            try {
+                drawScope.draw(
+                    Density(1f),
+                    LayoutDirection.Ltr,
+                    canvas,
+                    Size(surfaceWidth.toFloat(), surfaceHeight.toFloat())
+                ) {
+                    drawRect(Color.White)
+                    inset(0f, 0f, TEST_WIDTH.toFloat(), TEST_HEIGHT.toFloat()) {
+                        drawRect(Color.Black)
+                        block(graphicsContext)
+                    }
                 }
+                surface.flushAndSubmit(true)
+                val area =
+                    IRect.makeWH(
+                        if (entireScene) TEST_WIDTH * 2 else TEST_WIDTH,
+                        if (entireScene) TEST_HEIGHT * 2 else TEST_HEIGHT
+                    )
+                val imageBitmap = surface.makeImageSnapshot(area)!!.toComposeImageBitmap()
+                verify?.invoke(imageBitmap.toPixelMap())
+            } finally {
+                surface.close()
             }
-            surface.flushAndSubmit(true)
-            val area =
-                IRect.makeWH(
-                    if (entireScene) TEST_WIDTH * 2 else TEST_WIDTH,
-                    if (entireScene) TEST_HEIGHT * 2 else TEST_HEIGHT
-                )
-            val imageBitmap = surface.makeImageSnapshot(area)!!.toComposeImageBitmap()
-            verify?.invoke(imageBitmap.toPixelMap())
-        } finally {
-            surface.close()
-            graphicsContext.dispose()
         }
     }
 

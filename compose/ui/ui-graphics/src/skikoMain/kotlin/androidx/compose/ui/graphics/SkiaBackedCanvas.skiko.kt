@@ -16,22 +16,20 @@
 
 package androidx.compose.ui.graphics
 
-import org.jetbrains.skia.ClipMode as SkClipMode
-import org.jetbrains.skia.RRect as SkRRect
-import org.jetbrains.skia.Rect as SkRect
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.util.fastForEach
+import org.jetbrains.skia.ClipMode as SkClipMode
 import org.jetbrains.skia.CubicResampler
 import org.jetbrains.skia.FilterMipmap
 import org.jetbrains.skia.FilterMode
 import org.jetbrains.skia.Image
-import org.jetbrains.skia.Matrix44
 import org.jetbrains.skia.MipmapMode
+import org.jetbrains.skia.RRect as SkRRect
+import org.jetbrains.skia.Rect as SkRect
 import org.jetbrains.skia.SamplingMode
 import org.jetbrains.skia.impl.use
 
@@ -99,7 +97,7 @@ internal class SkiaBackedCanvas(val skia: org.jetbrains.skia.Canvas) : Canvas {
 
     override fun concat(matrix: Matrix) {
         if (!matrix.isIdentity()) {
-            skia.concat(matrix.toSkia())
+            skia.concat(matrix.toSkiaMatrix44())
         }
     }
 
@@ -111,11 +109,6 @@ internal class SkiaBackedCanvas(val skia: org.jetbrains.skia.Canvas) : Canvas {
     override fun clipPath(path: Path, clipOp: ClipOp) {
         val antiAlias = true
         skia.clipPath(path.asSkiaPath(), clipOp.toSkia(), antiAlias)
-    }
-
-    fun clipRoundRect(rect: RoundRect, clipOp: ClipOp = ClipOp.Intersect) {
-        val antiAlias = true
-        nativeCanvas.clipRRect(rect.toSkiaRRect(), clipOp.toSkia(), antiAlias)
     }
 
     override fun drawLine(p1: Offset, p2: Offset, paint: Paint) {
@@ -372,28 +365,6 @@ internal class SkiaBackedCanvas(val skia: org.jetbrains.skia.Canvas) : Canvas {
         ClipOp.Intersect -> SkClipMode.INTERSECT
         else -> SkClipMode.INTERSECT
     }
-
-    private fun Matrix.toSkia() = Matrix44(
-        this[0, 0],
-        this[1, 0],
-        this[2, 0],
-        this[3, 0],
-
-        this[0, 1],
-        this[1, 1],
-        this[2, 1],
-        this[3, 1],
-
-        this[0, 2],
-        this[1, 2],
-        this[2, 2],
-        this[3, 2],
-
-        this[0, 3],
-        this[1, 3],
-        this[2, 3],
-        this[3, 3]
-    )
 
     // These constants are chosen to correspond the old implementation of SkFilterQuality:
     // https://github.com/google/skia/blob/1f193df9b393d50da39570dab77a0bb5d28ec8ef/src/image/SkImage.cpp#L809

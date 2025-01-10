@@ -16,8 +16,6 @@
 
 package androidx.compose.ui.graphics.layer
 
-import androidx.compose.runtime.SnapshotMutationPolicy
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -32,7 +30,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.SkiaBackedCanvas
@@ -43,16 +40,21 @@ import androidx.compose.ui.graphics.asSkiaPath
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.draw
+import androidx.compose.ui.graphics.isIdentity
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.prepareTransformationMatrix
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.toSkia
+import androidx.compose.ui.graphics.toSkiaMatrix44
+import androidx.compose.ui.graphics.toSkiaRRect
 import androidx.compose.ui.graphics.toSkiaRect
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.toSize
+import org.jetbrains.skia.Canvas as SkCanvas
+import org.jetbrains.skia.Paint as SkPaint
 import org.jetbrains.skia.Picture
 import org.jetbrains.skia.PictureRecorder
 import org.jetbrains.skia.Point3
@@ -66,14 +68,10 @@ actual class GraphicsLayer internal constructor(
     private val pictureDrawScope = CanvasDrawScope()
     private val pictureRecorder = PictureRecorder()
     private var picture: Picture? = null
+    private var placeholder: Picture? = null
+
     // Use factory for BBoxHierarchy to track real bounds of drawn content
     private val bbhFactory = if (context.measureDrawBounds) RTreeFactory() else null
-
-    // Composable state marker for tracking drawing invalidations.
-    private val drawState = mutableStateOf(Unit, object : SnapshotMutationPolicy<Unit> {
-        override fun equivalent(a: Unit, b: Unit): Boolean = false
-        override fun merge(previous: Unit, current: Unit, applied: Unit) = current
-    })
 
     private var matrixDirty = true
     private val matrix = Matrix()
@@ -99,13 +97,17 @@ actual class GraphicsLayer internal constructor(
         }
 
     actual var size: IntSize = IntSize.Zero
-        private set
+        private set(value) {
+            if (field != value) {
+                field = value
+                updatePlaceholder()
+            }
+        }
+
+    private val bounds: SkRect
+        get() = SkRect.makeLTRB(0f, 0f, size.width.toFloat(), size.height.toFloat())
 
     actual var alpha: Float = 1f
-        set(value) {
-            field = value
-            requestDraw()
-        }
 
     actual var scaleX: Float = 1f
         set(value) {
@@ -128,10 +130,6 @@ actual class GraphicsLayer internal constructor(
             invalidateMatrix()
         }
     actual var shadowElevation: Float = 0f
-        set(value) {
-            field = value
-            requestDraw()
-        }
 
     actual var rotationX: Float = 0f
         set(value) {
@@ -156,27 +154,24 @@ actual class GraphicsLayer internal constructor(
         }
 
     actual var renderEffect: RenderEffect? = null
-        set(value) {
-            field = value
-            requestDraw()
-        }
 
     private var density: Density = Density(1f)
 
-    private fun invalidateMatrix(requestDraw: Boolean = true) {
+    private fun invalidateMatrix() {
         matrixDirty = true
-        if (requestDraw) {
-            requestDraw()
-        }
     }
 
-    private fun requestDraw() {
-        drawState.value = Unit
-    }
-
-    private fun updateLayerConfiguration(requestDraw: Boolean = true) {
+    private fun updateLayerConfiguration() {
         this.outlineDirty = true
-        invalidateMatrix(requestDraw)
+        invalidateMatrix()
+    }
+
+    // Note: Updating of placeholder REQUIRES parent layer invalidation
+    private fun updatePlaceholder() {
+        context.layerManager.unregisterPlaceholder(placeholder)
+        placeholder?.close()
+        placeholder = Picture.makePlaceholder(bounds)
+        context.layerManager.registerPlaceholder(placeholder!!, this)
     }
 
     actual fun record(
@@ -191,12 +186,7 @@ actual class GraphicsLayer internal constructor(
 
         this.density = density
         this.size = size
-        updateLayerConfiguration(
-            // [record] doesn't change the state and should not explicitly request drawing
-            // (happens only on the next frame) to avoid infinity invalidation loop.
-            // It's designed to be handled externally.
-            requestDraw = false
-        )
+        updateLayerConfiguration()
         val measureDrawBounds = !clip || shadowElevation > 0
         val bounds = size.toSize().toRect()
         val canvas = pictureRecorder.beginRecording(
@@ -224,17 +214,9 @@ actual class GraphicsLayer internal constructor(
 
     private fun trackRecord(block: () -> Unit) {
         childDependenciesTracker.withTracking(
-            onDependencyRemoved = { it.onRemovedFromParentLayer() }
-        ) {
-            context.snapshotObserver.observeReads(
-                scope = this,
-                onValueChangedForScope = {
-                    // Can be called from another thread
-                    it.requestDraw()
-                },
-                block = block
-            )
-        }
+            onDependencyRemoved = { it.onRemovedFromParentLayer() },
+            block = block
+        )
     }
 
     private fun addSubLayer(graphicsLayer: GraphicsLayer) {
@@ -244,10 +226,6 @@ actual class GraphicsLayer internal constructor(
     }
 
     actual var clip: Boolean = false
-        set(value) {
-            field = value
-            requestDraw()
-        }
 
     private inline fun createOutlineWithPosition(
         outlineTopLeft: Offset,
@@ -303,69 +281,62 @@ actual class GraphicsLayer internal constructor(
 
     internal actual fun draw(canvas: Canvas, parentLayer: GraphicsLayer?) {
         if (isReleased) return
-
-        var restoreCount = 0
         parentLayer?.addSubLayer(this)
 
-        // Read the state because any changes to the state should trigger re-drawing.
-        drawState.value
+        // Do any recalculation in [drawPlaceholder] because this block will be run only in case
+        // of parent layer invalidation. Things like transform should be applied without it.
 
-        picture?.let {
-            configureOutline()
+        placeholder?.let {
+            canvas.nativeCanvas.drawPicture(it, null, null)
+        }
+    }
 
-            updateMatrix()
+    internal fun drawPlaceholder(canvas: SkCanvas) {
+        val recordedPicture = picture ?: return
+        var restoreCount = 0
 
+        configureOutline()
+        updateMatrix()
+
+        canvas.save()
+        restoreCount++
+
+        if (!matrix.isIdentity()) {
+            canvas.concat(matrix.toSkiaMatrix44())
+        }
+        canvas.translate(topLeft.x.toFloat(), topLeft.y.toFloat())
+
+        if (shadowElevation > 0) {
+            drawShadow(canvas)
+        }
+
+        if (clip) {
             canvas.save()
             restoreCount++
+            canvas.clipOutline(internalOutline, bounds)
+        }
 
-            canvas.concat(matrix)
-            canvas.translate(topLeft.x.toFloat(), topLeft.y.toFloat())
-
-            if (shadowElevation > 0) {
-                drawShadow(canvas)
-            }
-
-            if (clip) {
-                canvas.save()
-                restoreCount++
-
-                when (val outline = internalOutline) {
-                    is Outline.Rectangle ->
-                        canvas.clipRect(outline.rect)
-                    is Outline.Rounded ->
-                        (canvas as SkiaBackedCanvas).clipRoundRect(outline.roundRect)
-                    is Outline.Generic ->
-                        canvas.clipPath(outline.path)
-                    null -> {
-                        canvas.clipRect(0f, 0f, size.width.toFloat(), size.height.toFloat())
-                    }
+        val useLayer = requiresLayer()
+        if (useLayer) {
+            canvas.saveLayer(
+                bounds,
+                SkPaint().apply {
+                    setAlphaf(this@GraphicsLayer.alpha)
+                    imageFilter = this@GraphicsLayer.renderEffect?.asSkiaImageFilter()
+                    colorFilter = this@GraphicsLayer.colorFilter?.asSkiaColorFilter()
+                    blendMode = this@GraphicsLayer.blendMode.toSkia()
                 }
-            }
+            )
+            restoreCount++
+        } else {
+            canvas.save()
+            restoreCount++
+        }
 
-            val useLayer = requiresLayer()
-            if (useLayer) {
-                canvas.saveLayer(
-                    Rect(0f, 0f, size.width.toFloat(), size.height.toFloat()),
-                    Paint().apply {
-                        this.alpha = this@GraphicsLayer.alpha
-                        this.asFrameworkPaint().apply {
-                            this.imageFilter = this@GraphicsLayer.renderEffect?.asSkiaImageFilter()
-                            this.colorFilter = this@GraphicsLayer.colorFilter?.asSkiaColorFilter()
-                            this.blendMode = this@GraphicsLayer.blendMode.toSkia()
-                        }
-                    }
-                )
-                restoreCount++
-            } else {
-                canvas.save()
-                restoreCount++
-            }
+        canvas.drawPicture(recordedPicture, null, null)
 
-            canvas.nativeCanvas.drawPicture(it, null, null)
-
-            repeat(restoreCount) {
-                canvas.restore()
-            }
+        repeat(restoreCount) {
+            canvas.restore()
         }
     }
 
@@ -392,16 +363,8 @@ actual class GraphicsLayer internal constructor(
         }
 
     actual var blendMode: BlendMode = BlendMode.SrcOver
-        set(value) {
-            field = value
-            requestDraw()
-        }
 
     actual var colorFilter: ColorFilter? = null
-        set(value) {
-            field = value
-            requestDraw()
-        }
 
     private fun resetOutlineParams() {
         internalOutline = null
@@ -478,22 +441,12 @@ actual class GraphicsLayer internal constructor(
             childDependenciesTracker.removeDependencies {
                 it.onRemovedFromParentLayer()
             }
-
-            context.snapshotObserver.clear(this)
         }
     }
 
     actual var ambientShadowColor: Color = Color.Black
-        set(value) {
-            field = value
-            requestDraw()
-        }
 
     actual var spotShadowColor: Color = Color.Black
-        set(value) {
-            field = value
-            requestDraw()
-        }
 
     private fun requiresLayer(): Boolean {
         val alphaNeedsLayer = alpha < 1f && compositingStrategy != CompositingStrategy.ModulateAlpha
@@ -505,7 +458,7 @@ actual class GraphicsLayer internal constructor(
             offscreenBufferRequested
     }
 
-    private fun drawShadow(canvas: Canvas) {
+    private fun drawShadow(canvas: SkCanvas) {
         val path = when (val tmpOutline = internalOutline) {
             is Outline.Rectangle -> Path().apply { addRect(tmpOutline.rect) }
             is Outline.Rounded -> Path().apply { addRoundRect(tmpOutline.roundRect) }
@@ -520,7 +473,7 @@ actual class GraphicsLayer internal constructor(
         val spotColor = spotShadowColor.copy(alpha = spotAlpha)
 
         return ShadowUtils.drawShadow(
-            canvas = canvas.nativeCanvas,
+            canvas = canvas,
             path = path.asSkiaPath(),
             zPlaneParams = zParams,
             lightPos = context.lightGeometry.center,
@@ -534,6 +487,14 @@ actual class GraphicsLayer internal constructor(
 
     actual suspend fun toImageBitmap(): ImageBitmap =
         ImageBitmap(size.width, size.height).apply { draw(Canvas(this), null) }
+}
+
+
+private fun SkCanvas.clipOutline(outline: Outline?, bounds: SkRect) = when (outline) {
+    is Outline.Rectangle -> clipRect(outline.rect.toSkiaRect(), antiAlias = true)
+    is Outline.Rounded -> clipRRect(outline.roundRect.toSkiaRRect(), antiAlias = true)
+    is Outline.Generic -> clipPath(outline.path.asSkiaPath())
+    null -> clipRect(bounds, antiAlias = true)
 }
 
 // The goal with selecting the size of the rectangle here is to avoid limiting the

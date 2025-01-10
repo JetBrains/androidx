@@ -16,32 +16,21 @@
 
 package androidx.compose.ui.graphics
 
-import androidx.compose.runtime.snapshots.SnapshotStateObserver
 import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.graphics.layer.GraphicsLayer
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.layer.LayerManager
+import org.jetbrains.skia.Matrix33
+import org.jetbrains.skia.Paint
+import org.jetbrains.skia.Picture
 import org.jetbrains.skia.Point3
 
 @InternalComposeUiApi
 class SkiaGraphicsContext(
     internal val measureDrawBounds: Boolean = false,
 ): GraphicsContext {
+    internal val layerManager = LayerManager()
     internal val lightGeometry = LightGeometry()
     internal val lightInfo = LightInfo()
-    internal val snapshotObserver = SnapshotStateObserver { command ->
-        command()
-    }
-
-    init {
-        snapshotObserver.start()
-    }
-
-    fun dispose() {
-        snapshotObserver.stop()
-        snapshotObserver.clear()
-    }
 
     fun setLightingInfo(
         centerX: Float = Float.MIN_VALUE,
@@ -57,10 +46,26 @@ class SkiaGraphicsContext(
         lightInfo.spotShadowAlpha = spotShadowAlpha
     }
 
+    fun drawIntoCanvas(canvas: Canvas, block: (Canvas) -> Unit) {
+        val pictureFilterCanvas = PictureFilterCanvas(canvas)
+        block(pictureFilterCanvas.asComposeCanvas())
+        pictureFilterCanvas.close()
+    }
+
     override fun createGraphicsLayer() = GraphicsLayer(this)
 
     override fun releaseGraphicsLayer(layer: GraphicsLayer) {
         layer.release()
+    }
+
+    private inner class PictureFilterCanvas(
+        canvas: Canvas
+    ) : org.jetbrains.skia.PictureFilterCanvas(canvas.nativeCanvas) {
+        override fun onDrawPicture(
+            picture: Picture,
+            matrix: Matrix33?,
+            paint: Paint?
+        ): Boolean = layerManager.drawPlaceholder(picture, this)
     }
 }
 
