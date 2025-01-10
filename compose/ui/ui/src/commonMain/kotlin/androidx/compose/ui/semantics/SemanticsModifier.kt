@@ -18,7 +18,6 @@ package androidx.compose.ui.semantics
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.internal.JvmDefaultWithCompatibility
-import androidx.compose.ui.internal.identityHashCode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.node.SemanticsModifierNode
 import androidx.compose.ui.platform.AtomicInt
@@ -48,21 +47,6 @@ interface SemanticsModifier : Modifier.Element {
      * as (label -> "buttonName").
      */
     val semanticsConfiguration: SemanticsConfiguration
-}
-
-internal class EmptySemanticsElement(private val node: EmptySemanticsModifier) :
-    ModifierNodeElement<EmptySemanticsModifier>() {
-    override fun create() = node
-
-    override fun update(node: EmptySemanticsModifier) {}
-
-    override fun InspectorInfo.inspectableProperties() {
-        // Nothing to inspect.
-    }
-
-    override fun hashCode(): Int = identityHashCode(this)
-
-    override fun equals(other: Any?) = (other === this)
 }
 
 internal class CoreSemanticsModifierNode(

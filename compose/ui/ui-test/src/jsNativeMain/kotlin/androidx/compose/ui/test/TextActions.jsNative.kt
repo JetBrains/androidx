@@ -23,3 +23,7 @@ actual inline fun <R> wrapAssertionErrorsWithNodeInfo(
     node: SemanticsNode,
     block: () -> R
 ): R = block()
+
+actual inline fun assertOnJvm(value: Boolean, lazyMessage: () -> Any) {
+    require(value, lazyMessage)
+}

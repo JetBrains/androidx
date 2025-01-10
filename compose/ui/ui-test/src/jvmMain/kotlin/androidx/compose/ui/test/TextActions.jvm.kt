@@ -41,3 +41,7 @@ internal class ProxyAssertionError(
         stackTrace = cause.stackTrace
     }
 }
+
+actual inline fun assertOnJvm(value: Boolean, lazyMessage: () -> Any) {
+    assert(value, lazyMessage)
+}

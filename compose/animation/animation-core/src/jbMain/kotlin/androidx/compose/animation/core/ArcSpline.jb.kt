@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-package androidx.compose.animation.core.internal
+package androidx.compose.animation.core
+
+import kotlin.math.PI
+
+internal actual inline fun toRadians(value: Double) = value * (PI / 180.0)
+
+internal actual inline fun binarySearch(array: FloatArray, position: Float) =
+    array.binarySearch(position)
 
 // copy of List.kotlin.collections.binarySearch adapted for Float
 internal fun FloatArray.binarySearch(element: Float, fromIndex: Int = 0, toIndex: Int = size): Int {

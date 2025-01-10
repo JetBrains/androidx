@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Android Open Source Project
+ * Copyright 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@ fun SemanticsNodeInteraction.performImeAction() {
 
     wrapAssertionErrorsWithNodeInfo(selector, node) {
         performSemanticsAction(OnImeAction) {
-            commonAssert(it()) {
+            assertOnJvm(it()) {
                 buildGeneralErrorMessage(
                     "Failed to perform IME action, handler returned false.",
                     selector,
@@ -127,3 +127,5 @@ internal expect inline fun <R> wrapAssertionErrorsWithNodeInfo(
     node: SemanticsNode,
     block: () -> R
 ): R
+
+internal expect inline fun assertOnJvm(value: Boolean, lazyMessage: () -> Any)

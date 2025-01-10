@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Android Open Source Project
+ * Copyright 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,8 @@
  * limitations under the License.
  */
 
-package androidx.compose.ui.node
+package androidx.compose.foundation.gestures
 
-internal expect class SortedSet<E>(comparator: Comparator<in E>) {
-    fun add(element: E): Boolean
-
-    fun remove(element: E): Boolean
-
-    fun first(): E
-
-    fun contains(element: E): Boolean
-
-    fun isEmpty(): Boolean
+actual inline fun assertOnJvm(statement: Boolean, message: () -> String) {
+    assert(statement, message)
 }

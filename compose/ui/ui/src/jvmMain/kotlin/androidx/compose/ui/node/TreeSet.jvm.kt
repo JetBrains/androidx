@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package androidx.compose.ui.test
+package androidx.compose.ui.node
 
-/**
- * Replacement of jvm only kotlin.assert(value, {message}) in commonMain sourceSet.
- */
-internal expect inline fun commonAssert(value: Boolean, lazyMessage: () -> Any)
+internal actual class TreeSet<E> actual constructor(comparator: Comparator<in E>) :
+    java.util.TreeSet<E>(comparator)

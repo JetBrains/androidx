@@ -17,11 +17,10 @@
 package androidx.compose.animation.core.cupertino
 
 import androidx.compose.animation.core.FloatDecayAnimationSpec
-import androidx.compose.animation.core.convertNanosToSeconds
-import androidx.compose.animation.core.convertSecondsToNanos
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.pow
+import kotlin.math.roundToLong
 import platform.UIKit.UIScrollViewDecelerationRateNormal
 
 /**
@@ -75,3 +74,11 @@ class CupertinoScrollDecayAnimationSpec(
         return initialVelocity * decelerationRate.pow(1000f * playTimeSeconds)
     }
 }
+
+internal const val SecondsToNanos: Long = 1_000_000_000L
+
+internal fun convertSecondsToNanos(seconds: Float): Long =
+    (seconds.toDouble() * SecondsToNanos).roundToLong()
+
+internal fun convertNanosToSeconds(nanos: Long): Double =
+    nanos.toDouble() / SecondsToNanos

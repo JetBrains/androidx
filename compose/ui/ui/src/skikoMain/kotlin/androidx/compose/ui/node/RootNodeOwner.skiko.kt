@@ -70,7 +70,6 @@ import androidx.compose.ui.platform.setLightingInfo
 import androidx.compose.ui.scene.ComposeScene
 import androidx.compose.ui.scene.ComposeSceneInputHandler
 import androidx.compose.ui.scene.ComposeScenePointer
-import androidx.compose.ui.semantics.EmptySemanticsElement
 import androidx.compose.ui.semantics.EmptySemanticsModifier
 import androidx.compose.ui.semantics.SemanticsOwner
 import androidx.compose.ui.semantics.isTraversalGroup

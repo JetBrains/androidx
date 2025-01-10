@@ -63,7 +63,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import kotlin.js.JsName
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -1571,7 +1570,7 @@ private class DefaultDraggableAnchors<T>(
 ) : DraggableAnchors<T> {
 
     init {
-        require(keys.size == anchors.size) {
+        assertOnJvm(keys.size == anchors.size) {
             "DraggableAnchors were constructed with " +
                 "inconsistent key-value sizes. Keys: $keys | Anchors: ${anchors.toList()}"
         }
@@ -1651,6 +1650,8 @@ private class DefaultDraggableAnchors<T>(
         append("})")
     }
 }
+
+internal expect inline fun assertOnJvm(statement: Boolean, message: () -> String): Unit
 
 internal val AnchoredDraggableMinFlingVelocity = 125.dp
 
