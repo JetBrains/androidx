@@ -18,6 +18,9 @@ package androidx.compose.ui.scene
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionContext
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.backhandler.BackGestureDispatcher
+import androidx.compose.ui.backhandler.LocalBackGestureDispatcher
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
@@ -43,11 +46,12 @@ import kotlin.coroutines.CoroutineContext
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.useContents
 import platform.CoreGraphics.CGPoint
+import platform.UIKit.UIWindow
 
 internal class UIKitComposeSceneLayer(
     private val onClosed: (UIKitComposeSceneLayer) -> Unit,
     private val createComposeSceneContext: (PlatformContext) -> ComposeSceneContext,
-    private val providingCompositionLocals: @Composable (@Composable () -> Unit) -> Unit,
+    private val hostCompositionLocals: @Composable (@Composable () -> Unit) -> Unit,
     private val metalView: MetalView,
     onGestureEvent: (GestureEvent) -> Unit,
     private val initDensity: Density,
@@ -68,6 +72,7 @@ internal class UIKitComposeSceneLayer(
         }
 
     val view = UIKitComposeSceneLayerView(
+        ::onDidMoveToWindow,
         ::isInsideInteractionBounds,
         isInterceptingOutsideEvents = { focusable }
     )
@@ -123,6 +128,16 @@ internal class UIKitComposeSceneLayer(
 
     private val scrimPaint = Paint()
 
+    private val backGestureDispatcher = BackGestureDispatcher(
+        density = density,
+        getTopLeftOffsetInWindow = { boundsInWindow.topLeft }
+    )
+
+    private fun onDidMoveToWindow(window: UIWindow?) {
+        window ?: return
+        backGestureDispatcher.setView(view.getParentAttachedToWindow(window))
+    }
+
     fun render(canvas: Canvas, nanoTime: Long) {
         if (scrimColor != null) {
             val rect = metalView.bounds.asDpRect().toRect(density)
@@ -148,10 +163,18 @@ internal class UIKitComposeSceneLayer(
         view.removeFromSuperview()
     }
 
+    @Composable
+    private fun ProvideComposeSceneLayerCompositionLocals(
+        content: @Composable () -> Unit
+    ) = CompositionLocalProvider(
+        LocalBackGestureDispatcher provides backGestureDispatcher,
+        content = content
+    )
+
     override fun setContent(content: @Composable () -> Unit) {
         mediator.setContent {
-            providingCompositionLocals {
-                content()
+            hostCompositionLocals {
+                ProvideComposeSceneLayerCompositionLocals(content)
             }
         }
     }

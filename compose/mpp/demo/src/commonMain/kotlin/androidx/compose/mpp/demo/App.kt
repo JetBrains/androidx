@@ -1,7 +1,7 @@
 package androidx.compose.mpp.demo
 
 import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.EnterTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.IntOffset
@@ -21,16 +21,19 @@ class App(
 ) {
     @Composable
     fun Content(navController: NavHostController = rememberNavController()) {
-        val animationSpec = tween<IntOffset>(500)
         NavHost(
             navController = navController,
             startDestination = initialScreenName ?: MainScreen.title,
 
             // Custom animations
-            enterTransition = { slideIntoContainer(SlideDirection.Left, animationSpec) },
-            exitTransition = { slideOutOfContainer(SlideDirection.Left, animationSpec) },
-            popEnterTransition = { slideIntoContainer(SlideDirection.Right, animationSpec) },
-            popExitTransition = { slideOutOfContainer(SlideDirection.Right, animationSpec) }
+            popEnterTransition = { EnterTransition.None },
+            exitTransition = { slideOutOfContainer(SlideDirection.Right) },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = SlideDirection.Right,
+                    targetOffset = { it / 2 }
+                )
+            }
         ) {
             buildScreen(MainScreen.mergedWith(extraScreens), navController)
         }

@@ -24,6 +24,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.LocalSystemTheme
 import androidx.compose.ui.SystemTheme
+import androidx.compose.ui.backhandler.BackGestureDispatcher
+import androidx.compose.ui.backhandler.LocalBackGestureDispatcher
 import androidx.compose.ui.graphics.asComposeCanvas
 import androidx.compose.ui.hapticfeedback.CupertinoHapticFeedback
 import androidx.compose.ui.platform.AccessibilitySyncOptions
@@ -39,6 +41,7 @@ import androidx.compose.ui.uikit.PlistSanityCheck
 import androidx.compose.ui.uikit.density
 import androidx.compose.ui.uikit.utils.CMPViewController
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.asDpRect
 import androidx.compose.ui.unit.roundToIntRect
@@ -81,6 +84,7 @@ import platform.UIKit.UIStatusBarStyle
 import platform.UIKit.UITraitCollection
 import platform.UIKit.UIUserInterfaceLayoutDirection
 import platform.UIKit.UIUserInterfaceStyle
+import platform.UIKit.UIView
 import platform.UIKit.UIViewControllerTransitionCoordinatorProtocol
 import platform.UIKit.UIWindow
 import platform.darwin.dispatch_async
@@ -122,6 +126,11 @@ internal class ComposeHostingViewController(
     private val layers = UIKitComposeSceneLayersHolder(windowContext, configuration.parallelRendering)
     private val layoutDirection get() = getLayoutDirection()
     private var hasViewAppeared: Boolean = false
+
+    private val backGestureDispatcher = BackGestureDispatcher(
+        density = rootView.density,
+        getTopLeftOffsetInWindow = { IntOffset.Zero } //full screen
+    )
 
     fun hasInvalidations(): Boolean {
         return mediator?.hasInvalidations == true || layers.hasInvalidations
@@ -212,6 +221,7 @@ internal class ComposeHostingViewController(
 
     private fun onDidMoveToWindow(window: UIWindow?) {
         val windowContainer = window ?: return
+        backGestureDispatcher.setView(rootView.getParentAttachedToWindow(window))
 
         updateInterfaceOrientationState()
 
@@ -340,7 +350,7 @@ internal class ComposeHostingViewController(
                 val layer = UIKitComposeSceneLayer(
                     onClosed = ::detachLayer,
                     createComposeSceneContext = ::createComposeSceneContext,
-                    providingCompositionLocals = { ProvideContainerCompositionLocals(it) },
+                    hostCompositionLocals = { ProvideContainerCompositionLocals(it) },
                     metalView = layers.metalView,
                     onGestureEvent = layers::onGestureEvent,
                     initDensity = density,
@@ -468,6 +478,7 @@ internal class ComposeHostingViewController(
             LocalSystemTheme provides systemThemeState.value,
             LocalLifecycleOwner provides lifecycleOwner,
             LocalInternalViewModelStoreOwner provides lifecycleOwner,
+            LocalBackGestureDispatcher provides backGestureDispatcher,
             content = content
         )
 
@@ -500,3 +511,13 @@ private val AccessibilitySyncOptions.isGlobalAccessibilityEnabled
             AccessibilitySyncOptions.WhenRequiredByAccessibilityServices -> UIAccessibilityIsVoiceOverRunning()
             AccessibilitySyncOptions.Always -> true
         }
+
+internal fun UIView.getParentAttachedToWindow(window: UIWindow): UIView {
+    var result: UIView = this
+    while (result.superview != window) {
+        result = requireNotNull(result.superview) {
+            "Window is not null, but superview is null for ${result.debugDescription}"
+        }
+    }
+    return result
+}

@@ -54,11 +54,15 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.Navigator
+import androidx.navigation.compose.internal.BackEventCompat
+import androidx.navigation.compose.internal.PlatformPredictiveBackHandler
 import androidx.navigation.createGraph
 import androidx.navigation.get
 import kotlin.jvm.JvmSuppressWildcards
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 private class ComposeViewModelStoreOwner: ViewModelStoreOwner {
@@ -525,8 +529,7 @@ public fun NavHost(
 
     var progress by remember { mutableFloatStateOf(0f) }
     var inPredictiveBack by remember { mutableStateOf(false) }
-    /* TODO: Support PredictiveBackHandler on multiplatform
-    PredictiveBackHandler(currentBackStack.size > 1) { backEvent ->
+    PlatformPredictiveBackHandler(currentBackStack.size > 1) { backEvent: Flow<BackEventCompat> ->
         progress = 0f
         val currentBackStackEntry = currentBackStack.lastOrNull()
         composeNavigator.prepareForTransition(currentBackStackEntry!!)
@@ -543,7 +546,6 @@ public fun NavHost(
             inPredictiveBack = false
         }
     }
-    */
 
     DisposableEffect(lifecycleOwner) {
         // Setup the navController with proper owners
