@@ -18,9 +18,9 @@ package androidx.compose.ui.scene
 
 import org.jetbrains.skia.Rect as SkRect
 import androidx.compose.runtime.CompositionContext
+import androidx.compose.ui.awt.JLayeredPaneWithTransparencyHack
 import androidx.compose.ui.awt.RenderSettings
 import androidx.compose.ui.awt.getTransparentWindowBackground
-import androidx.compose.ui.awt.setTransparent
 import androidx.compose.ui.awt.toAwtRectangle
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.toRect
@@ -42,7 +42,6 @@ import java.awt.Point
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.JDialog
-import javax.swing.JLayeredPane
 import org.jetbrains.skia.Canvas
 import org.jetbrains.skiko.SkiaLayerAnalytics
 
@@ -73,14 +72,14 @@ internal class WindowComposeSceneLayer(
             renderApi = composeContainer.renderApi
         )
     }
-    private val container = object : JLayeredPane() {
+    private val container = object : JLayeredPaneWithTransparencyHack() {
         override fun addNotify() {
             super.addNotify()
             mediator?.onComponentAttached()
         }
     }.also {
         it.layout = null
-        it.setTransparent(transparent)
+        it.isOpaque = !transparent
 
         dialog.contentPane = it
     }

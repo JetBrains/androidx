@@ -32,7 +32,6 @@ import java.awt.Window
 import java.awt.event.MouseListener
 import java.awt.event.MouseMotionListener
 import java.awt.event.MouseWheelListener
-import javax.swing.JLayeredPane
 import org.jetbrains.skiko.SkiaLayerAnalytics
 
 /**
@@ -42,7 +41,7 @@ internal class ComposeWindowPanel(
     private val window: Window,
     private val isUndecorated: () -> Boolean,
     skiaLayerAnalytics: SkiaLayerAnalytics,
-) : JLayeredPane() {
+) : JLayeredPaneWithTransparencyHack() {
     private var isDisposed = false
 
     // AWT can leak JFrame in some cases
@@ -87,7 +86,7 @@ internal class ComposeWindowPanel(
                 }
                 field = value
                 composeContainer.onWindowTransparencyChanged(value)
-                setTransparent(value)
+                isOpaque = !value
                 window.background = getTransparentWindowBackground(value, renderApi)
             }
         }

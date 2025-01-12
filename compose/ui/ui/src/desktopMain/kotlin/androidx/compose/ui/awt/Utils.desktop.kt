@@ -21,8 +21,9 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntRect
 import java.awt.Component
 import java.awt.EventQueue
+import java.awt.Graphics
 import java.awt.Rectangle
-import javax.swing.JComponent
+import javax.swing.JLayeredPane
 import kotlin.math.ceil
 import kotlin.math.floor
 import org.jetbrains.skiko.GraphicsApi
@@ -71,22 +72,39 @@ internal fun getTransparentWindowBackground(
     return if (isWindowTransparent && !skikoTransparentWindowHack) java.awt.Color(0, 0, 0, 0) else null
 }
 
-internal fun JComponent.setTransparent(transparent: Boolean) {
-    /*
-     * Windows makes clicks on transparent pixels fall through, but it doesn't work
-     * with GPU accelerated rendering since this check requires having access to pixels from CPU.
-     *
-     * JVM doesn't allow override this behaviour with low-level windows methods, so hack this in this way.
-     * Based on tests, it doesn't affect resulting pixel color.
-     *
-     * Note: Do not set isOpaque = false for this container
-     */
-    if (transparent && hostOs == OS.Windows) {
-        background = java.awt.Color(0, 0, 0, 1)
-        isOpaque = true
-    } else {
-        background = null
-        isOpaque = false
+
+/**
+ * Windows makes clicks on transparent pixels fall through, but it doesn't work
+ * with GPU accelerated rendering since this check requires having access to pixels from CPU.
+ *
+ * JVM doesn't allow override this behaviour with low-level windows methods, so hack this by filling
+ * the background with an almost transparent color.
+ * Based on tests, it doesn't affect resulting pixel color.
+ */
+internal open class JLayeredPaneWithTransparencyHack: JLayeredPane() {
+    override fun paint(g: Graphics) {
+        if (!isOpaque && UseTransparencyHack) {
+            // Fill the background with an almost transparent color
+            g.color = AlmostTransparent
+            val r = g.clipBounds
+            if (r != null) {
+                g.fillRect(r.x, r.y, r.width, r.height)
+            } else {
+                g.fillRect(0, 0, width, height)
+            }
+        }
+
+        super.paint(g)
+    }
+
+    private companion object {
+
+        @JvmStatic
+        val AlmostTransparent = java.awt.Color(0, 0, 0, 1)
+
+        @JvmStatic
+        private val UseTransparencyHack = hostOs == OS.Windows
+
     }
 }
 
