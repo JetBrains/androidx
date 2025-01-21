@@ -221,6 +221,7 @@ includeProject(":compose:ui:ui-viewbinding:ui-viewbinding-samples", "compose/ui/
 includeProject(":compose:ui:ui:integration-tests:ui-demos")
 includeProject(":compose:ui:ui:ui-samples", "compose/ui/ui/samples")
 includeProject(":compose:ui:ui-uikit")
+includeProject(":compose:ui:ui-xctest")
 
 includeProject(":kruth:kruth")
 

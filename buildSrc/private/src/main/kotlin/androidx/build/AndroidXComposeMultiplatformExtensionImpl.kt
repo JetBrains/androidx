@@ -16,21 +16,18 @@
 
 package androidx.build
 
-import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 import org.gradle.api.Project
-import org.gradle.api.attributes.Attribute
 import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.Exec
 import org.gradle.kotlin.dsl.creating
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.getByName
 import org.gradle.kotlin.dsl.getValue
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithSimulatorTests
-import org.jetbrains.kotlin.gradle.targets.native.DefaultSimulatorTestRun
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import org.tomlj.Toml
 
@@ -255,7 +252,17 @@ open class AndroidXComposeMultiplatformExtensionImpl @Inject constructor(
                     addAll(darwinFlags)
                     if (isIOS) addAll(iosFlags)
                 }
-                it.freeCompilerArgs = it.freeCompilerArgs + flags
+
+                // TODO: Remove when the issue is fixed in KGP
+                // https://youtrack.jetbrains.com/issue/KT-74564
+                // it.freeCompilerArgs += flags
+                //
+                // Fixes problem when instrumented tests compilation is not properly applied to
+                // the framework configuration.
+                it.linkTaskProvider.configure {
+                    @Suppress("DEPRECATION")
+                    it.kotlinOptions.freeCompilerArgs += flags
+                }
             }
         }
         multiplatformExtension.run {
@@ -267,68 +274,33 @@ open class AndroidXComposeMultiplatformExtensionImpl @Inject constructor(
         }
     }
 
-    // https://youtrack.jetbrains.com/issue/KT-55751/MPP-Gradle-Consumable-configurations-must-have-unique-attributes
-    private val instrumentedTestAttribute = Attribute.of("instrumentedTest", String::class.java)
-    private val instrumentedTestCompilationAttribute = Attribute.of("instrumentedTestCompilation", String::class.java)
-    override fun iosInstrumentedTest(): Unit =
+    override fun iosInstrumentedTest() {
         multiplatformExtension.run {
-            fun getDeviceName(): String? {
-                return project.findProperty("iosSimulatorName") as? String
-            }
-
-            val bootTask = project.tasks.register("bootIosSimulator", Exec::class.java) { task ->
-                task.isIgnoreExitValue = true
-                task.errorOutput = ByteArrayOutputStream()
-                task.doFirst {
-                    val simulatorName = getDeviceName()
-                        ?: error("Device is not provided. Use Use the -PiosSimulatorName=<Device name> flag to pass the device.")
-                    task.commandLine("xcrun", "simctl", "boot", simulatorName)
-                }
-                task.doLast {
-                    val result = task.executionResult.get()
-                    if (result.exitValue != 148 && result.exitValue != 149) { // ignoring device already booted errors
-                        result.assertNormalExitValue()
-                    }
-                }
-            }
+            val uikitMain = sourceSets.getByName("uikitMain")
+            val uikitInstrumentedTest = sourceSets.create("uikitInstrumentedTest")
+            uikitInstrumentedTest.dependsOn(uikitMain)
 
             fun KotlinNativeTargetWithSimulatorTests.configureTestRun() {
-                attributes.attribute(instrumentedTestAttribute, "test")
-                testRuns.forEach {
-                    (it as DefaultSimulatorTestRun).executionTask.configure { task ->
-                        task.dependsOn(bootTask)
-                        task.standalone.set(false)
-                        task.device.set(getDeviceName())
-                    }
+                val testCompilation = compilations.create("instrumentedTest") {
+                    it.associateWith(compilations.getByName("main"))
+                    it.defaultSourceSet.dependsOn(uikitInstrumentedTest)
                 }
-                compilations.forEach {
-                    it.attributes.attribute(instrumentedTestCompilationAttribute, "test")
+                binaries.framework("InstrumentedTest", setOf(DEBUG)) {
+                    compilation = testCompilation
+                    baseName = "InstrumentedTest"
+                    isStatic = true
                 }
             }
-
-            iosX64("uikitInstrumentedX64") {
-                configureTestRun()
-            }
-            // Testing on real iOS devices is not supported.
-            // iosArm64("uikitInstrumentedArm64") { ... }
-            iosSimulatorArm64("uikitInstrumentedSimArm64") {
-                configureTestRun()
-            }
-
-            val uikitMain = sourceSets.getByName("uikitMain")
-            val uikitInstrumentedMain = sourceSets.create("uikitInstrumentedMain")
-            val uikitInstrumentedX64Main = sourceSets.getByName("uikitInstrumentedX64Main")
-            val uikitInstrumentedSimArm64Main = sourceSets.getByName("uikitInstrumentedSimArm64Main")
-            uikitInstrumentedMain.dependsOn(uikitMain)
-            uikitInstrumentedX64Main.dependsOn(uikitInstrumentedMain)
-            uikitInstrumentedSimArm64Main.dependsOn(uikitInstrumentedMain)
-
-            val commonTest = sourceSets.getByName("commonTest")
-            val uikitInstrumentedTest = sourceSets.create("uikitInstrumentedTest")
-            val uikitInstrumentedX64Test = sourceSets.getByName("uikitInstrumentedX64Test")
-            val uikitInstrumentedSimArm64Test = sourceSets.getByName("uikitInstrumentedSimArm64Test")
-            uikitInstrumentedTest.dependsOn(commonTest)
-            uikitInstrumentedX64Test.dependsOn(uikitInstrumentedTest)
-            uikitInstrumentedSimArm64Test.dependsOn(uikitInstrumentedTest)
+            testableTargets.getByName(
+                "uikitX64",
+                KotlinNativeTargetWithSimulatorTests::class,
+                KotlinNativeTargetWithSimulatorTests::configureTestRun
+            )
+            testableTargets.getByName(
+                "uikitSimArm64",
+                KotlinNativeTargetWithSimulatorTests::class,
+                KotlinNativeTargetWithSimulatorTests::configureTestRun
+            )
         }
+    }
 }

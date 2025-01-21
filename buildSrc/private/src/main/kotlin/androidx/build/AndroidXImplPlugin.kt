@@ -24,16 +24,11 @@ import androidx.build.SupportConfig.DEFAULT_MIN_SDK_VERSION
 import androidx.build.SupportConfig.INSTRUMENTATION_RUNNER
 import androidx.build.SupportConfig.TARGET_SDK_VERSION
 import androidx.build.buildInfo.addCreateLibraryBuildInfoFileTasks
-import androidx.build.checkapi.JavaApiTaskConfig
-import androidx.build.checkapi.KmpApiTaskConfig
-import androidx.build.checkapi.LibraryApiTaskConfig
-import androidx.build.checkapi.configureProjectForApiTasks
 import androidx.build.dependencies.KOTLIN_VERSION
 import androidx.build.docs.AndroidXKmpDocsImplPlugin
 import androidx.build.gradle.isRoot
 import androidx.build.license.configureExternalDependencyLicenseCheck
 import androidx.build.resources.configurePublicResourcesStub
-import androidx.build.sbom.validateAllArchiveInputsRecognized
 import androidx.build.studio.StudioTask
 import androidx.build.testConfiguration.ModuleInfoGenerator
 import androidx.build.testConfiguration.TestModule
@@ -56,7 +51,7 @@ import com.android.build.gradle.TestPlugin
 import com.android.build.gradle.TestedExtension
 import java.io.File
 import java.time.Duration
-import java.util.Locale
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
@@ -879,7 +874,17 @@ class AndroidXImplPlugin @Inject constructor(val componentFactory: SoftwareCompo
                 kotlinTarget.binaries.all {
                     // Use std allocator to avoid the following warning:
                     // w: Mimalloc allocator isn't supported on target <target>. Used standard mode.
-                    it.freeCompilerArgs += "-Xallocator=std"
+
+                    // TODO: Remove when the issue is fixed in KGP
+                    // https://youtrack.jetbrains.com/issue/KT-74564
+                    // it.freeCompilerArgs += "-Xallocator=std"
+                    //
+                    // Fixes problem when instrumented tests compilation is not properly applied to
+                    // the framework configuration.
+                    it.linkTaskProvider.configure {
+                        @Suppress("DEPRECATION")
+                        it.kotlinOptions.freeCompilerArgs += "-Xallocator=std"
+                    }
                 }
             }
         }

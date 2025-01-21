@@ -1,0 +1,110 @@
+/*
+ * Copyright 2025 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+import androidx.build.JetbrainsAndroidXPlugin
+import androidx.build.LibraryType
+import org.jetbrains.kotlin.konan.target.KonanTarget
+
+
+plugins {
+    id("AndroidXPlugin")
+    id("kotlin-multiplatform")
+    id("JetbrainsAndroidXPlugin")
+}
+
+JetbrainsAndroidXPlugin.applyAndConfigure(project)
+
+kotlin {
+    iosX64("uikitX64") {
+        configure(it)
+    }
+    iosArm64("uikitArm64") {
+        configure(it)
+    }
+    iosSimulatorArm64("uikitSimArm64") {
+        configure(it)
+    }
+
+    sourceSets {
+        commonMain {}
+        def uikitMain = sourceSets.create("uikitMain")
+        def uikitX64Main = sourceSets.getByName("uikitX64Main")
+        def uikitArm64Main = sourceSets.getByName("uikitArm64Main")
+        def uikitSimArm64Main = sourceSets.getByName("uikitSimArm64Main")
+
+        uikitMain.dependsOn(commonMain)
+        uikitX64Main.dependsOn(uikitMain)
+        uikitArm64Main.dependsOn(uikitMain)
+        uikitSimArm64Main.dependsOn(uikitMain)
+
+        configureEach {
+            languageSettings.optIn("kotlinx.cinterop.BetaInteropApi")
+            languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
+            languageSettings.optIn("kotlin.experimental.ExperimentalNativeApi")
+        }
+
+    }
+}
+
+private static String getSdkPlatformPath(platform) {
+    return new ProcessBuilder("xcrun", "--sdk", platform, "--show-sdk-platform-path")
+            .redirectErrorStream(true) // Combine stdout and stderr
+            .start()
+            .inputStream
+            .text
+            .trim()
+}
+
+private static String frameworksPath(target) {
+    def path
+    switch (target) {
+        case KonanTarget.IOS_SIMULATOR_ARM64:
+        case KonanTarget.IOS_X64:
+            path = getSdkPlatformPath("iphonesimulator")
+            break
+        case KonanTarget.IOS_ARM64:
+            path = getSdkPlatformPath("iphoneos")
+            break
+        default:
+            throw new IllegalArgumentException("Unexpected target ${target}")
+    }
+    return "${path}/Developer/Library/Frameworks/"
+}
+
+private def configure(target) {
+    target.compilations.all {
+        cinterops {
+            XCTest {
+                def path = frameworksPath(target.konanTarget)
+                compilerOpts("-iframework", path)
+            }
+        }
+        compileTaskProvider.configure {
+            compilerOptions {
+                freeCompilerArgs.add("-Xdont-warn-on-error-suppression")
+            }
+        }
+    }
+}
+
+androidx {
+    name = "Compose XCTest Utils"
+    type = LibraryType.INTERNAL_TEST_LIBRARY
+    inceptionYear = "2025"
+    description = "Internal utilities that convert kotlin.test into XCTest."
+    legacyDisableKotlinStrictApiMode = true
+}
