@@ -25,12 +25,14 @@ plugins {
     id("kotlinx-atomicfu")
     id("JetbrainsAndroidXPlugin")
     //id("AndroidXPaparazziPlugin") // isn't supported on Windows
+    alias(libs.plugins.dokka)
 }
 
 AndroidXComposePlugin.applyAndConfigureKotlinPlugin(project)
 JetbrainsAndroidXPlugin.applyAndConfigure(project)
 
 dependencies {
+    dokkaHtmlPlugin(libs.storytale.dokka.plugin)
 
 
     if(!AndroidXComposePlugin.isMultiplatformEnabled(project)) {
@@ -82,7 +84,7 @@ dependencies {
 
 if(AndroidXComposePlugin.isMultiplatformEnabled(project)) {
     androidXComposeMultiplatform {
-        android()
+//        android() // TODO: figure it out. Currently dokka forces its compilation but it doesn't work in our fork
         desktop()
         darwin()
         wasm()

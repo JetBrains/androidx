@@ -137,6 +137,8 @@ import androidx.compose.ui.unit.dp
  *   preview the button in different states. Note that if `null` is provided, interactions will
  *   still happen internally.
  * @param content The content displayed on the button, expected to be text, icon or image.
+ *
+ * @story http://localhost:8080/#org.jetbrains.compose.storytale.gallery.navigation.Route.MobileHome
  */
 @Composable
 fun Button(

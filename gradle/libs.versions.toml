@@ -31,7 +31,7 @@ dagger = "2.49"
 datetime = "0.6.0"
 dependencyAnalysisGradlePlugin = "1.32.0"
 dexmaker = "2.28.3"
-dokka = "1.8.20-dev-214"
+dokka = "2.0.0"
 espresso = "3.6.1"
 espressoDevice = "1.0.1"
 grpc = "1.52.0"
@@ -317,6 +317,7 @@ xmlApis = { module = "xml-apis:xml-apis", version.ref = "xmlApis" }
 xpp3 = { module = "xpp3:xpp3", version = "1.1.4c" }
 xmlpull = { module = "xmlpull:xmlpull", version = "1.1.3.1" }
 androidx-core = { group = "androidx.core", name = "core", version.ref = "core" }
+storytale-dokka-plugin = { module = "org.jetbrains.compose.storytale:storytale-dokka-plugin", version.ref = "storytale" }
 
 [plugins]
 kotlinBenchmark = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "kotlinBenchmark" }
@@ -326,6 +327,7 @@ kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", versio
 atomicFu = { id = "org.jetbrains.kotlin.plugin.atomicfu", version.ref = "atomicFu" }
 storytale = { id = "org.jetbrains.compose.storytale", version.ref = "storytale" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin"}
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 
 [bundles]
 # prevent androidAccessibilityFramework 3.1 which pulls hamcrest 2.2, breaking espresso-core
