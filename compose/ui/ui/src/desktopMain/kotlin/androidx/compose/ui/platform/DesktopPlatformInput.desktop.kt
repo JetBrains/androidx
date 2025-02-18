@@ -104,7 +104,7 @@ internal class DesktopTextInputService(private val component: PlatformComponent)
     }
 
     fun inputMethodTextChanged(event: InputMethodEvent) {
-        if (!event.isConsumed) {
+        if ((currentInput != null) && !event.isConsumed) {
             replaceInputMethodText(event)
             event.consume()
         }
