@@ -178,7 +178,7 @@ internal abstract class TextFieldKeyEventHandler {
                 KeyCommand.LINE_RIGHT -> moveCursorToLineRightSide()
                 KeyCommand.HOME -> moveCursorToHome()
                 KeyCommand.END -> moveCursorToEnd()
-                KeyCommand.DELETE_PREV_CHAR -> moveCursorPrevByChar().deleteMovement()
+                KeyCommand.DELETE_PREV_CHAR -> moveCursorPrevByCodePointOrEmoji().deleteMovement()
                 KeyCommand.DELETE_NEXT_CHAR -> moveCursorNextByChar().deleteMovement()
                 KeyCommand.DELETE_PREV_WORD -> moveCursorPrevByWord().deleteMovement()
                 KeyCommand.DELETE_NEXT_WORD -> moveCursorNextByWord().deleteMovement()

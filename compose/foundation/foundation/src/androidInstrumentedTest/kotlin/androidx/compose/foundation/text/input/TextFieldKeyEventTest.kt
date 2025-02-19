@@ -16,6 +16,7 @@
 
 package androidx.compose.foundation.text.input
 
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.internal.readText
 import androidx.compose.foundation.internal.toClipEntry
@@ -29,6 +30,7 @@ import androidx.compose.foundation.text.TEST_FONT_FAMILY
 import androidx.compose.foundation.text.input.TextFieldLineLimits.MultiLine
 import androidx.compose.foundation.text.input.TextFieldLineLimits.SingleLine
 import androidx.compose.foundation.text.input.internal.selection.FakeClipboard
+import androidx.compose.foundation.text.test.withEmojiCompat
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Modifier
@@ -42,6 +44,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -202,6 +205,33 @@ class TextFieldKeyEventTest {
             pressKey(Key.DirectionRight)
             pressKey(Key.Backspace)
             expectedText("hllo")
+        }
+    }
+
+    @Test
+    fun textField_backspace_withDiacritic() {
+        keysSequenceTest(initText = "e\u0301f") { // e + combining acute accent + f
+            press(Key.CtrlLeft + Key.DirectionRight) // move cursor to end of line
+            pressKey(Key.Backspace)
+            expectedText("e\u0301")
+            pressKey(Key.Backspace) // Should remove the accent, not the base character
+            expectedText("e")
+            pressKey(Key.Backspace)
+            expectedText("")
+            pressKey(Key.Backspace) // Shouldn't crash
+            expectedText("")
+        }
+    }
+
+    @Test
+    fun textField_backspace_withEmoji() {
+        val emojiText =
+            "\ud83d\udc69\u200d\u2764\ufe0f\u200d\ud83d\udc8b\u200d\ud83d\udc69" // 👩‍❤️‍💋‍👩
+
+        keysSequenceTest(initText = emojiText, useEmojiCompat = true) {
+            press(Key.CtrlLeft + Key.DirectionRight) // move cursor to end of line
+            pressKey(Key.Backspace)
+            expectedText("") // If it is deleting code points, the result will look like "👩‍❤️‍💋‍"
         }
     }
 
@@ -932,12 +962,15 @@ class TextFieldKeyEventTest {
         singleLine: Boolean = false,
         secure: Boolean = false,
         noTextLayout: Boolean = false,
+        useEmojiCompat: Boolean = false,
         sequence: suspend SequenceScope.() -> Unit,
     ) {
         val state = TextFieldState(initText, initSelection)
         val focusRequester = FocusRequester()
         val clipboard = FakeClipboard("InitialTestText")
+        lateinit var context: Context
         rule.setContent {
+            context = LocalContext.current
             CompositionLocalProvider(
                 LocalDensity provides defaultDensity,
                 LocalClipboard provides clipboard,
@@ -970,12 +1003,13 @@ class TextFieldKeyEventTest {
         }
 
         rule.runOnIdle { focusRequester.requestFocus() }
-
         rule.waitForIdle()
         rule.mainClock.advanceTimeBy(1000)
 
-        rule.onNodeWithTag(tag).performKeyInput {
-            runBlocking { sequence(SequenceScope(state, clipboard, this@performKeyInput)) }
+        withEmojiCompat(context, enabled = useEmojiCompat) {
+            rule.onNodeWithTag(tag).performKeyInput {
+                runBlocking { sequence(SequenceScope(state, clipboard, this@performKeyInput)) }
+            }
         }
     }
 }
