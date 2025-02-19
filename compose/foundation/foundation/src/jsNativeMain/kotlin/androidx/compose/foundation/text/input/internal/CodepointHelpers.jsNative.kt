@@ -19,6 +19,8 @@ package androidx.compose.foundation.text.input.internal
 import androidx.compose.foundation.text.codePointAt as _codePointAt
 import androidx.compose.foundation.text.codePointBefore as _codePointBefore
 import androidx.compose.foundation.text.charCount
+import androidx.compose.foundation.text.input.internal.selection.TextFieldPreparedSelection.Companion.NoCharacterFound
+import androidx.compose.foundation.text.offsetByCodePoints
 
 internal actual fun CharSequence.codePointAt(index: Int): Int =
     _codePointAt(index)
@@ -28,3 +30,12 @@ internal actual fun charCount(codePoint: Int): Int =
 
 internal actual fun CharSequence.codePointBefore(index: Int): Int =
     _codePointBefore(index)
+
+/**
+ * @return the code point before the given [index], or [NoCharacterFound] if there is no code point
+ *   before [index].
+ */
+internal actual fun CharSequence.findCodePointBefore(index: Int): Int {
+    if (index <= 0) return NoCharacterFound
+    return offsetByCodePoints(index, offset = -1)
+}

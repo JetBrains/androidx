@@ -27,5 +27,3 @@ actual inline fun doubleFromBits(bits: Long): Double = Double.fromBits(bits)
 actual inline fun Float.fastRoundToInt(): Int = roundToInt()
 
 actual inline fun Double.fastRoundToInt(): Int = roundToInt()
-
-internal actual fun CharSequence.findCodePointBefore(index: Int): Int = implementedInJetBrainsFork()
