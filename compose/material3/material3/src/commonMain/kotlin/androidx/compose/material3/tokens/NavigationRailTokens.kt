@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// VERSION: v0_210
+// VERSION: v0_103
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 package androidx.compose.material3.tokens
 
 import androidx.compose.ui.unit.dp
 
-internal object NavigationBarTokens {
+internal object NavigationRailTokens {
     val ActiveFocusIconColor = ColorSchemeKeyTokens.OnSecondaryContainer
     val ActiveFocusLabelTextColor = ColorSchemeKeyTokens.OnSurface
     val ActiveHoverIconColor = ColorSchemeKeyTokens.OnSecondaryContainer
@@ -29,15 +29,14 @@ internal object NavigationBarTokens {
     val ActiveIndicatorColor = ColorSchemeKeyTokens.SecondaryContainer
     val ActiveIndicatorHeight = 32.0.dp
     val ActiveIndicatorShape = ShapeKeyTokens.CornerFull
-    val ActiveIndicatorWidth = 64.0.dp
+    val ActiveIndicatorWidth = 56.0.dp
     val ActiveLabelTextColor = ColorSchemeKeyTokens.OnSurface
     val ActivePressedIconColor = ColorSchemeKeyTokens.OnSecondaryContainer
     val ActivePressedLabelTextColor = ColorSchemeKeyTokens.OnSurface
-    val ContainerColor = ColorSchemeKeyTokens.SurfaceContainer
-    val ContainerElevation = ElevationTokens.Level2
-    val ContainerHeight = 80.0.dp
+    val ContainerColor = ColorSchemeKeyTokens.Surface
+    val ContainerElevation = ElevationTokens.Level0
     val ContainerShape = ShapeKeyTokens.CornerNone
-    val FocusIndicatorColor = ColorSchemeKeyTokens.Secondary
+    val ContainerWidth = 80.0.dp
     val IconSize = 24.0.dp
     val InactiveFocusIconColor = ColorSchemeKeyTokens.OnSurface
     val InactiveFocusLabelTextColor = ColorSchemeKeyTokens.OnSurface
@@ -48,4 +47,11 @@ internal object NavigationBarTokens {
     val InactivePressedIconColor = ColorSchemeKeyTokens.OnSurface
     val InactivePressedLabelTextColor = ColorSchemeKeyTokens.OnSurface
     val LabelTextFont = TypographyKeyTokens.LabelMedium
+    val MenuFocusIconColor = ColorSchemeKeyTokens.OnSurface
+    val MenuHoverIconColor = ColorSchemeKeyTokens.OnSurface
+    val MenuIconColor = ColorSchemeKeyTokens.OnSurfaceVariant
+    val MenuIconSize = 24.0.dp
+    val MenuPressedIconColor = ColorSchemeKeyTokens.OnSurface
+    val NoLabelActiveIndicatorHeight = 56.0.dp
+    val NoLabelActiveIndicatorShape = ShapeKeyTokens.CornerFull
 }

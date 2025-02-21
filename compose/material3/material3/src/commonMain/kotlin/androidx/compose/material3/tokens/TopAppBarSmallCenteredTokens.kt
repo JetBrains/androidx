@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 The Android Open Source Project
+ * Copyright 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// VERSION: v0_11_0
+// VERSION: v0_210
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 package androidx.compose.material3.tokens
 
 import androidx.compose.ui.unit.dp
 
-internal object NavigationRailExpandedTokens {
+internal object TopAppBarSmallCenteredTokens {
+    val AvatarShape = ShapeKeyTokens.CornerFull
+    val AvatarSize = 30.0.dp
+    val ContainerColor = ColorSchemeKeyTokens.Surface
     val ContainerElevation = ElevationTokens.Level0
+    val ContainerHeight = 64.0.dp
     val ContainerShape = ShapeKeyTokens.CornerNone
-    val ContainerWidthMaximum = 360.0.dp
-    val ContainerWidthMinimum = 220.0.dp
-    val ModalContainerElevation = ElevationTokens.Level2
-    val ModalContainerShape = ShapeKeyTokens.CornerLarge
-    val TopSpace = 44.0.dp
-    // TODO: Update this file to include the following missing tokens:
-    val ModalContainerColor = ColorSchemeKeyTokens.SurfaceContainer
+    val ContainerSurfaceTintLayerColor = ColorSchemeKeyTokens.SurfaceTint
+    val HeadlineColor = ColorSchemeKeyTokens.OnSurface
+    val HeadlineFont = TypographyKeyTokens.TitleLarge
+    val LeadingIconColor = ColorSchemeKeyTokens.OnSurface
+    val LeadingIconSize = 24.0.dp
+    val OnScrollContainerColor = ColorSchemeKeyTokens.SurfaceContainer
+    val OnScrollContainerElevation = ElevationTokens.Level2
+    val TrailingIconColor = ColorSchemeKeyTokens.OnSurfaceVariant
+    val TrailingIconSize = 24.0.dp
 }

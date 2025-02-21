@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// VERSION: 7_0_1
+// VERSION: v0_210
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 package androidx.compose.material3.tokens
@@ -48,7 +48,7 @@ internal object FilterChipTokens {
     val FlatUnselectedFocusContainerElevation = ElevationTokens.Level0
     val FlatUnselectedFocusOutlineColor = ColorSchemeKeyTokens.OnSurfaceVariant
     val FlatUnselectedHoverContainerElevation = ElevationTokens.Level0
-    val FlatUnselectedOutlineColor = ColorSchemeKeyTokens.OutlineVariant
+    val FlatUnselectedOutlineColor = ColorSchemeKeyTokens.Outline
     val FlatUnselectedOutlineWidth = 1.0.dp
     val FlatUnselectedPressedContainerElevation = ElevationTokens.Level0
     val FocusIndicatorColor = ColorSchemeKeyTokens.Secondary

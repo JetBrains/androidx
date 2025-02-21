@@ -26,10 +26,8 @@ import androidx.compose.material3.internal.DateInputFormat
 import androidx.compose.material3.internal.Strings
 import androidx.compose.material3.internal.format
 import androidx.compose.material3.internal.getString
-import androidx.compose.material3.tokens.MotionTokens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,8 +35,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.error
@@ -52,8 +48,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import kotlin.jvm.JvmInline
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,12 +58,12 @@ internal fun DateInputContent(
     yearRange: IntRange,
     dateFormatter: DatePickerFormatter,
     selectableDates: SelectableDates,
-    colors: DatePickerColors,
-    requestFocus: Boolean
+    colors: DatePickerColors
 ) {
     // Obtain the DateInputFormat for the default Locale.
+    val defaultLocale = defaultLocale()
     val dateInputFormat =
-        remember(calendarModel.locale) { calendarModel.getDateInputFormat(calendarModel.locale) }
+        remember(defaultLocale) { calendarModel.getDateInputFormat(defaultLocale) }
     val errorDatePattern = getString(Strings.DateInputInvalidForPattern)
     val errorDateOutOfYearRange = getString(Strings.DateInputInvalidYearRange)
     val errorInvalidNotAllowed = getString(Strings.DateInputInvalidNotAllowed)
@@ -107,9 +101,8 @@ internal fun DateInputContent(
                 currentStartDateMillis = selectedDateMillis
             },
         dateInputFormat = dateInputFormat,
-        locale = calendarModel.locale,
-        colors = colors,
-        requestFocus = requestFocus
+        locale = defaultLocale,
+        colors = colors
     )
 }
 
@@ -126,64 +119,26 @@ internal fun DateInputTextField(
     dateInputValidator: DateInputValidator,
     dateInputFormat: DateInputFormat,
     locale: CalendarLocale,
-    colors: DatePickerColors,
-    requestFocus: Boolean
+    colors: DatePickerColors
 ) {
+    val errorText = rememberSaveable { mutableStateOf("") }
     var text by
         rememberSaveable(stateSaver = TextFieldValue.Saver) {
-            val initialText =
-                initialDateMillis?.let {
-                    calendarModel.formatWithPattern(
-                        it,
-                        dateInputFormat.patternWithoutDelimiters,
-                        locale
-                    )
-                } ?: ""
             mutableStateOf(
                 TextFieldValue(
-                    text = initialText,
-                    // Ensures that the initial cursor position is at the end of the text.
-                    selection =
-                        if (initialText.isEmpty()) {
-                            TextRange.Zero
-                        } else {
-                            TextRange(initialText.length, initialText.length)
-                        }
+                    text =
+                        initialDateMillis?.let {
+                            calendarModel.formatWithPattern(
+                                it,
+                                dateInputFormat.patternWithoutDelimiters,
+                                locale
+                            )
+                        } ?: "",
+                    TextRange(0, 0)
                 )
             )
         }
 
-    val errorText = rememberSaveable {
-        // Run an initial validation if the text is not empty.
-        var initialError = ""
-        if (text.text.isNotEmpty()) {
-            initialError =
-                dateInputValidator.validate(
-                    dateToValidate =
-                        calendarModel.parse(
-                            date = text.text,
-                            pattern = dateInputFormat.patternWithoutDelimiters,
-                            locale = locale
-                        ),
-                    inputIdentifier = inputIdentifier,
-                    locale = locale
-                )
-        }
-        mutableStateOf(initialError)
-    }
-
-    // Calculate how much bottom padding should be added. In case there is an error text, which is
-    // added as a supportingText, take into account the default supportingText padding to ensure
-    // the padding does not trigger a component height change.
-    val bottomPadding =
-        if (errorText.value.isBlank()) {
-            InputTextNonErroneousBottomPadding
-        } else {
-            val textFieldPadding = TextFieldDefaults.supportingTextPadding()
-            InputTextNonErroneousBottomPadding -
-                (textFieldPadding.calculateBottomPadding() + textFieldPadding.calculateTopPadding())
-        }
-    val focusRequester = if (requestFocus) remember { FocusRequester() } else null
     OutlinedTextField(
         value = text,
         onValueChange = { input ->
@@ -201,11 +156,7 @@ internal fun DateInputTextField(
                     onDateSelectionChange(null)
                 } else {
                     val parsedDate =
-                        calendarModel.parse(
-                            date = trimmedText,
-                            pattern = dateInputFormat.patternWithoutDelimiters,
-                            locale = locale
-                        )
+                        calendarModel.parse(trimmedText, dateInputFormat.patternWithoutDelimiters)
                     errorText.value =
                         dateInputValidator.validate(
                             dateToValidate = parsedDate,
@@ -226,15 +177,17 @@ internal fun DateInputTextField(
         },
         modifier =
             modifier
-                .padding(bottom = bottomPadding)
-                .semantics { if (errorText.value.isNotBlank()) error(errorText.value) }
-                .then(
-                    if (focusRequester != null) {
-                        Modifier.focusRequester(focusRequester)
-                    } else {
-                        Modifier
-                    }
-                ),
+                // Add bottom padding when there is no error. Otherwise, remove it as the error text
+                // will take additional height.
+                .padding(
+                    bottom =
+                        if (errorText.value.isNotBlank()) {
+                            0.dp
+                        } else {
+                            InputTextNonErroneousBottomPadding
+                        }
+                )
+                .semantics { if (errorText.value.isNotBlank()) error(errorText.value) },
         label = label,
         placeholder = placeholder,
         supportingText = { if (errorText.value.isNotBlank()) Text(errorText.value) },
@@ -249,20 +202,6 @@ internal fun DateInputTextField(
         singleLine = true,
         colors = colors.dateTextFieldColors
     )
-
-    LaunchedEffect(Unit) {
-        // Call the onDateSelectionChange in a LaunchedEffect to ensure the title is cleared in case
-        // the input was initialized with an invalid date.
-        if (errorText.value.isNotEmpty()) {
-            onDateSelectionChange(null)
-        }
-        // In case a focus is to be requested, delay the request to allow a smooth transition in
-        // case the DateInput is in a dialog.
-        if (focusRequester != null) {
-            delay(MotionTokens.DurationMedium2.toLong())
-            focusRequester.requestFocus()
-        }
-    }
 }
 
 /**
@@ -284,6 +223,10 @@ internal fun DateInputTextField(
  * @param errorInvalidRangeInput a string for displaying an error message when in a range input mode
  *   and one of the input dates is out of order (i.e. the user inputs a start date that is after the
  *   end date, or an end date that is before the start date)
+ * @param currentStartDateMillis the currently selected start date in milliseconds. Only checked
+ *   against when the [InputIdentifier] is [InputIdentifier.EndDateInput].
+ * @param currentEndDateMillis the currently selected end date in milliseconds. Only checked against
+ *   when the [InputIdentifier] is [InputIdentifier.StartDateInput].
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Stable
@@ -295,20 +238,20 @@ internal class DateInputValidator(
     private val errorDatePattern: String,
     private val errorDateOutOfYearRange: String,
     private val errorInvalidNotAllowed: String,
-    private val errorInvalidRangeInput: String
+    private val errorInvalidRangeInput: String,
+    internal var currentStartDateMillis: Long? = null,
+    internal var currentEndDateMillis: Long? = null,
 ) {
-    /**
-     * the currently selected start date in milliseconds. Only checked against when the
-     * [InputIdentifier] is [InputIdentifier.EndDateInput].
-     */
-    var currentStartDateMillis: Long? = null
 
     /**
-     * the currently selected end date in milliseconds. Only checked against when the
-     * [InputIdentifier] is [InputIdentifier.StartDateInput].
+     * Validates a [CalendarDate] input and returns an error string in case an issue with the given
+     * date is detected, or an empty string in case there are no issues.
+     *
+     * @param dateToValidate a [CalendarDate] input to validate
+     * @param inputIdentifier an [InputIdentifier] that provides information about the input field
+     *   that is supposed to hold the date.
+     * @param locale the current [CalendarLocale]
      */
-    var currentEndDateMillis: Long? = null
-
     fun validate(
         dateToValidate: CalendarDate?,
         inputIdentifier: InputIdentifier,
@@ -328,7 +271,7 @@ internal class DateInputValidator(
         with(selectableDates) {
             if (
                 !isSelectableYear(dateToValidate.year) ||
-                !isSelectableDate(dateToValidate.utcTimeMillis)
+                    !isSelectableDate(dateToValidate.utcTimeMillis)
             ) {
                 return errorInvalidNotAllowed.format(
                     dateFormatter.formatDate(
@@ -343,8 +286,8 @@ internal class DateInputValidator(
         if (
             (inputIdentifier == InputIdentifier.StartDateInput &&
                 dateToValidate.utcTimeMillis >= (currentEndDateMillis ?: Long.MAX_VALUE)) ||
-            (inputIdentifier == InputIdentifier.EndDateInput &&
-                dateToValidate.utcTimeMillis < (currentStartDateMillis ?: Long.MIN_VALUE))
+                (inputIdentifier == InputIdentifier.EndDateInput &&
+                    dateToValidate.utcTimeMillis < (currentStartDateMillis ?: Long.MIN_VALUE))
         ) {
             // The input start date is after the end date, or the end date is before the start date.
             return errorInvalidRangeInput
@@ -359,7 +302,7 @@ internal class DateInputValidator(
  * when validating the user input, and especially when validating an input range.
  */
 @Immutable
-@JvmInline
+@kotlin.jvm.JvmInline
 internal value class InputIdentifier internal constructor(internal val value: Int) {
 
     companion object {

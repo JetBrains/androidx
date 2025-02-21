@@ -25,9 +25,9 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.internal.systemBarsForVisualComponents
-import androidx.compose.material3.tokens.NavigationBarHorizontalItemTokens
-import androidx.compose.material3.tokens.NavigationBarTokens
-import androidx.compose.material3.tokens.NavigationBarVerticalItemTokens
+import androidx.compose.material3.tokens.ColorSchemeKeyTokens
+import androidx.compose.material3.tokens.ShapeKeyTokens
+import androidx.compose.material3.tokens.TypographyKeyTokens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -48,49 +48,44 @@ import kotlin.jvm.JvmInline
 import kotlin.math.roundToInt
 
 /**
- * Material Design short navigation bar.
+ * Material Design expressive navigation bar.
  *
- * Short navigation bars offer a persistent and convenient way to switch between primary
+ * Expressive navigation bars offer a persistent and convenient way to switch between primary
  * destinations in an app.
  *
- * The recommended configuration of the [ShortNavigationBar] depends on the width size of the screen
- * it's being displayed at:
- * - In small screens, the [ShortNavigationBar] should contain three to five
- *   [ShortNavigationBarItem]s, each representing a singular destination, and its [arrangement]
- *   should be [ShortNavigationBarArrangement.EqualWeight], so that the navigation items are equally
+ * The recommended configuration of the [ExpressiveNavigationBar] depends on the width size of the
+ * screen it's being displayed at:
+ * - In small screens, the [ExpressiveNavigationBar] should contain three to five
+ *   [ExpressiveNavigationBarItem]s, each representing a singular destination, and its [arrangement]
+ *   should be [NavigationBarArrangement.EqualWeight], so that the navigation items are equally
  *   distributed on the bar.
- * - In medium screens, [ShortNavigationBar] should contain three to six [ShortNavigationBarItem]s,
- *   each representing a singular destination, and its [arrangement] should be
- *   [ShortNavigationBarArrangement.Centered], so that the navigation items are distributed grouped
- *   on the center of the bar.
+ * - In medium screens, [ExpressiveNavigationBar] should contain three to six
+ *   [ExpressiveNavigationBarItem]s, each representing a singular destination, and its [arrangement]
+ *   should be [NavigationBarArrangement.Centered], so that the navigation items are distributed
+ *   grouped on the center of the bar.
  *
- * A simple example of the first configuration looks like this:
+ * See [ExpressiveNavigationBarItem] for configuration specific to each item, and not the overall
+ * [ExpressiveNavigationBar] component.
  *
- * @sample androidx.compose.material3.samples.ShortNavigationBarSample
- *
- * And of the second configuration:
- *
- * @sample androidx.compose.material3.samples.ShortNavigationBarWithHorizontalItemsSample
- *
- * See [ShortNavigationBarItem] for configurations specific to each item, and not the overall
- * [ShortNavigationBar] component.
- *
- * @param modifier the [Modifier] to be applied to this navigation bar
- * @param containerColor the color used for the background of this navigation bar. Use
+ * @param modifier the [Modifier] to be applied to this expressive navigation bar
+ * @param containerColor the color used for the background of this expressive navigation bar. Use
  *   [Color.Transparent] to have no color
- * @param contentColor the color for content inside this navigation bar.
- * @param windowInsets a window insets of the navigation bar
- * @param arrangement the [ShortNavigationBarArrangement] of this navigation bar
- * @param content the content of this navigation bar, typically [ShortNavigationBarItem]s
+ * @param contentColor the color for content inside this expressive navigation bar.
+ * @param windowInsets a window insets of the expressive navigation bar
+ * @param arrangement the [NavigationBarArrangement] of this expressive navigation bar
+ * @param content the content of this expressive navigation bar, typically
+ *   [ExpressiveNavigationBarItem]s
+ *
+ * TODO: Remove "internal".
  */
-@ExperimentalMaterial3ExpressiveApi
+@ExperimentalMaterial3Api
 @Composable
-fun ShortNavigationBar(
+internal fun ExpressiveNavigationBar(
     modifier: Modifier = Modifier,
-    containerColor: Color = ShortNavigationBarDefaults.containerColor,
-    contentColor: Color = ShortNavigationBarDefaults.contentColor,
-    windowInsets: WindowInsets = ShortNavigationBarDefaults.windowInsets,
-    arrangement: ShortNavigationBarArrangement = ShortNavigationBarDefaults.arrangement,
+    containerColor: Color = ExpressiveNavigationBarDefaults.containerColor,
+    contentColor: Color = ExpressiveNavigationBarDefaults.contentColor,
+    windowInsets: WindowInsets = ExpressiveNavigationBarDefaults.windowInsets,
+    arrangement: NavigationBarArrangement = ExpressiveNavigationBarDefaults.arrangement,
     content: @Composable () -> Unit
 ) {
     Surface(
@@ -101,15 +96,15 @@ fun ShortNavigationBar(
             modifier =
                 modifier
                     .windowInsetsPadding(windowInsets)
-                    .defaultMinSize(minHeight = NavigationBarTokens.ContainerHeight)
+                    .defaultMinSize(minHeight = NavigationBarHeight)
                     .selectableGroup(),
             content = content,
             measurePolicy =
                 when (arrangement) {
-                    ShortNavigationBarArrangement.EqualWeight -> {
+                    NavigationBarArrangement.EqualWeight -> {
                         EqualWeightContentMeasurePolicy()
                     }
-                    ShortNavigationBarArrangement.Centered -> {
+                    NavigationBarArrangement.Centered -> {
                         CenteredContentMeasurePolicy()
                     }
                     else -> {
@@ -120,23 +115,27 @@ fun ShortNavigationBar(
     }
 }
 
-/** Class that describes the different supported item arrangements of the [ShortNavigationBar]. */
+/**
+ * Class that describes the different supported item arrangements of the [ExpressiveNavigationBar].
+ *
+ * TODO: Remove "internal".
+ */
 @JvmInline
-value class ShortNavigationBarArrangement private constructor(private val value: Int) {
+internal value class NavigationBarArrangement private constructor(private val value: Int) {
     companion object {
         /*
-         * The items are equally distributed on the Short Navigation Bar.
+         * The items are equally distributed on the Expressive Navigation Bar.
          *
          * This configuration is recommended for small width screens.
          */
-        val EqualWeight = ShortNavigationBarArrangement(0)
+        val EqualWeight = NavigationBarArrangement(0)
 
         /*
-         * The items are centered on the Short Navigation Bar.
+         * The items are centered on the Expressive Navigation Bar.
          *
          * This configuration is recommended for medium width screens.
          */
-        val Centered = ShortNavigationBarArrangement(1)
+        val Centered = NavigationBarArrangement(1)
     }
 
     override fun toString() =
@@ -148,50 +147,54 @@ value class ShortNavigationBarArrangement private constructor(private val value:
 }
 
 /**
- * Material Design short navigation bar item.
+ * Material Design expressive navigation bar item.
  *
- * Short navigation bars offer a persistent and convenient way to switch between primary
+ * Expressive navigation bars offer a persistent and convenient way to switch between primary
  * destinations in an app.
  *
- * It's recommend for navigation items to always have a text label. An [ShortNavigationBarItem]
+ * It's recommend for navigation items to always have a text label. An [ExpressiveNavigationBarItem]
  * always displays labels (if they exist) when selected and unselected.
  *
- * The [ShortNavigationBarItem] supports two different icon positions, top and start, which is
+ * The [ExpressiveNavigationBarItem] supports two different icon positions, top and start, which is
  * controlled by the [iconPosition] param:
  * - If the icon position is [NavigationItemIconPosition.Top] the icon will be displayed above the
- *   label. This configuration is recommended for short navigation bars used in small width screens,
- *   like a phone in portrait mode.
+ *   label. This configuration is recommended for expressive navigation bars used in small width
+ *   screens, like a phone in portrait mode.
  * - If the icon position is [NavigationItemIconPosition.Start] the icon will be displayed to the
- *   start of the label. This configuration is recommended for short navigation bars used in medium
- *   width screens, like a phone in landscape mode.
+ *   start of the label. This configuration is recommended for expressive navigation bars used in
+ *   medium width screens, like a phone in landscape mode.
  *
  * @param selected whether this item is selected
  * @param onClick called when this item is clicked
  * @param icon icon for this item, typically an [Icon]
- * @param label text label for this item
  * @param modifier the [Modifier] to be applied to this item
  * @param enabled controls the enabled state of this item. When `false`, this component will not
  *   respond to user input, and it will appear visually disabled and disabled to accessibility
  *   services.
+ * @param label text label for this item
+ * @param badge optional badge to show on this item, typically a [Badge]
  * @param iconPosition the [NavigationItemIconPosition] for the icon
  * @param colors [NavigationItemColors] that will be used to resolve the colors used for this item
- *   in different states. See [ShortNavigationBarItemDefaults.colors]
+ *   in different states. See [ExpressiveNavigationBarItemDefaults.colors]
  * @param interactionSource an optional hoisted [MutableInteractionSource] for observing and
  *   emitting [Interaction]s for this item. You can use this to change the item's appearance or
  *   preview the item in different states. Note that if `null` is provided, interactions will still
  *   happen internally.
+ *
+ * TODO: Remove "internal".
  */
-@ExperimentalMaterial3ExpressiveApi
+@ExperimentalMaterial3Api
 @Composable
-fun ShortNavigationBarItem(
+internal fun ExpressiveNavigationBarItem(
     selected: Boolean,
     onClick: () -> Unit,
     icon: @Composable () -> Unit,
-    label: @Composable (() -> Unit)?,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    label: @Composable (() -> Unit)? = null,
+    badge: (@Composable () -> Unit)? = null,
     iconPosition: NavigationItemIconPosition = NavigationItemIconPosition.Top,
-    colors: NavigationItemColors = ShortNavigationBarItemDefaults.colors(),
+    colors: NavigationItemColors = ExpressiveNavigationBarItemDefaults.colors(),
     interactionSource: MutableInteractionSource? = null,
 ) {
     @Suppress("NAME_SHADOWING")
@@ -215,9 +218,9 @@ fun ShortNavigationBarItem(
         selected = selected,
         onClick = onClick,
         icon = icon,
-        labelTextStyle = NavigationBarTokens.LabelTextFont.value,
-        indicatorShape = NavigationBarTokens.ItemActiveIndicatorShape.value,
-        indicatorWidth = NavigationBarVerticalItemTokens.ActiveIndicatorWidth,
+        labelTextStyle = LabelTextFont.value,
+        indicatorShape = ActiveIndicatorShape.value,
+        indicatorWidth = TopIconItemActiveIndicatorWidth,
         indicatorHorizontalPadding = indicatorHorizontalPadding,
         indicatorVerticalPadding = indicatorVerticalPadding,
         indicatorToLabelVerticalPadding = TopIconIndicatorToLabelPadding,
@@ -227,27 +230,31 @@ fun ShortNavigationBarItem(
         modifier = modifier,
         enabled = enabled,
         label = label,
+        badge = badge,
         iconPosition = iconPosition,
         interactionSource = interactionSource,
     )
 }
 
-/** Defaults used in [ShortNavigationBar]. */
-@ExperimentalMaterial3ExpressiveApi
-object ShortNavigationBarDefaults {
-    /** Default container color for a short navigation bar. */
+// TODO: Remove "internal".
+/** Defaults used in [ExpressiveNavigationBar]. */
+@ExperimentalMaterial3Api
+internal object ExpressiveNavigationBarDefaults {
+    /** Default container color for an expressive navigation bar. */
+    // TODO: Replace with token.
     val containerColor: Color
-        @Composable get() = NavigationBarTokens.ContainerColor.value
+        @Composable get() = ColorSchemeKeyTokens.SurfaceContainer.value
 
-    /** Default content color for a short navigation bar. */
+    /** Default content color for an expressive navigation bar. */
+    // TODO: Replace with token.
     val contentColor: Color
-        @Composable get() = contentColorFor(containerColor)
+        @Composable get() = ColorSchemeKeyTokens.OnSurfaceVariant.value
 
-    /** Default arrangement for a short navigation bar. */
-    val arrangement: ShortNavigationBarArrangement
-        get() = ShortNavigationBarArrangement.EqualWeight
+    /** Default arrangement for an expressive navigation bar. */
+    val arrangement: NavigationBarArrangement
+        get() = NavigationBarArrangement.EqualWeight
 
-    /** Default window insets to be used and consumed by the short navigation bar. */
+    /** Default window insets to be used and consumed by the expressive navigation bar. */
     val windowInsets: WindowInsets
         @Composable
         get() =
@@ -256,67 +263,31 @@ object ShortNavigationBarDefaults {
             )
 }
 
-/** Defaults used in [ShortNavigationBarItem]. */
-@ExperimentalMaterial3ExpressiveApi
-object ShortNavigationBarItemDefaults {
+// TODO: Remove "internal".
+/** Defaults used in [ExpressiveNavigationBarItem]. */
+@ExperimentalMaterial3Api
+internal object ExpressiveNavigationBarItemDefaults {
     /**
      * Creates a [NavigationItemColors] with the provided colors according to the Material
      * specification.
      */
-    @Composable fun colors() = MaterialTheme.colorScheme.defaultShortNavigationBarItemColors
+    @Composable fun colors() = MaterialTheme.colorScheme.defaultExpressiveNavigationBarItemColors
 
-    /**
-     * Creates a [NavigationItemColors] with the provided colors according to the Material
-     * specification.
-     *
-     * @param selectedIconColor the color to use for the icon when the item is selected.
-     * @param selectedTextColor the color to use for the text label when the item is selected.
-     * @param selectedIndicatorColor the color to use for the indicator when the item is selected.
-     * @param unselectedIconColor the color to use for the icon when the item is unselected.
-     * @param unselectedTextColor the color to use for the text label when the item is unselected.
-     * @param disabledIconColor the color to use for the icon when the item is disabled.
-     * @param disabledTextColor the color to use for the text label when the item is disabled.
-     * @return the resulting [NavigationItemColors] used for [ShortNavigationBarItem]
-     */
-    @Composable
-    fun colors(
-        selectedIconColor: Color = NavigationBarTokens.ItemActiveIconColor.value,
-        selectedTextColor: Color = NavigationBarTokens.ItemActiveLabelTextColor.value,
-        selectedIndicatorColor: Color = NavigationBarTokens.ItemActiveIndicatorColor.value,
-        unselectedIconColor: Color = NavigationBarTokens.ItemInactiveIconColor.value,
-        unselectedTextColor: Color = NavigationBarTokens.ItemInactiveLabelTextColor.value,
-        disabledIconColor: Color = unselectedIconColor.copy(alpha = DisabledAlpha),
-        disabledTextColor: Color = unselectedTextColor.copy(alpha = DisabledAlpha),
-    ): NavigationItemColors =
-        MaterialTheme.colorScheme.defaultShortNavigationBarItemColors.copy(
-            selectedIconColor = selectedIconColor,
-            selectedTextColor = selectedTextColor,
-            selectedIndicatorColor = selectedIndicatorColor,
-            unselectedIconColor = unselectedIconColor,
-            unselectedTextColor = unselectedTextColor,
-            disabledIconColor = disabledIconColor,
-            disabledTextColor = disabledTextColor,
-        )
-
-    internal val ColorScheme.defaultShortNavigationBarItemColors: NavigationItemColors
+    internal val ColorScheme.defaultExpressiveNavigationBarItemColors: NavigationItemColors
         get() {
-            return defaultShortNavigationBarItemColorsCached
+            return defaultExpressiveNavigationBarItemColorsCached
                 ?: NavigationItemColors(
-                        selectedIconColor = fromToken(NavigationBarTokens.ItemActiveIconColor),
-                        selectedTextColor = fromToken(NavigationBarTokens.ItemActiveLabelTextColor),
-                        selectedIndicatorColor =
-                            fromToken(NavigationBarTokens.ItemActiveIndicatorColor),
-                        unselectedIconColor = fromToken(NavigationBarTokens.ItemInactiveIconColor),
-                        unselectedTextColor =
-                            fromToken(NavigationBarTokens.ItemInactiveLabelTextColor),
+                        selectedIconColor = fromToken(ActiveIconColor),
+                        selectedTextColor = fromToken(ActiveLabelTextColor),
+                        selectedIndicatorColor = fromToken(ActiveIndicatorColor),
+                        unselectedIconColor = fromToken(InactiveIconColor),
+                        unselectedTextColor = fromToken(InactiveLabelTextColor),
                         disabledIconColor =
-                            fromToken(NavigationBarTokens.ItemInactiveIconColor)
-                                .copy(alpha = DisabledAlpha),
+                            fromToken(InactiveIconColor).copy(alpha = DisabledAlpha),
                         disabledTextColor =
-                            fromToken(NavigationBarTokens.ItemInactiveLabelTextColor)
-                                .copy(alpha = DisabledAlpha),
+                            fromToken(InactiveLabelTextColor).copy(alpha = DisabledAlpha),
                     )
-                    .also { defaultShortNavigationBarItemColorsCached = it }
+                    .also { defaultExpressiveNavigationBarItemColorsCached = it }
         }
 }
 
@@ -456,24 +427,33 @@ private fun calculateCenteredContentHorizontalPadding(itemsCount: Int, barWidth:
     return (paddingPercentage * barWidth).roundToInt()
 }
 
+/* TODO: Replace below values with tokens. */
+private val IconSize = 24.0.dp
+private val TopIconItemActiveIndicatorWidth = 56.dp
+private val TopIconItemActiveIndicatorHeight = 32.dp
+private val StartIconItemActiveIndicatorHeight = 40.dp
+private val LabelTextFont = TypographyKeyTokens.LabelMedium
+private val ActiveIndicatorShape = ShapeKeyTokens.CornerFull
+// TODO: Update to OnSecondaryContainer once value matches Secondary.
+private val ActiveIconColor = ColorSchemeKeyTokens.Secondary
+// TODO: Update to OnSecondaryContainer once value matches Secondary.
+private val ActiveLabelTextColor = ColorSchemeKeyTokens.Secondary
+private val ActiveIndicatorColor = ColorSchemeKeyTokens.SecondaryContainer
+private val InactiveIconColor = ColorSchemeKeyTokens.OnSurfaceVariant
+private val InactiveLabelTextColor = ColorSchemeKeyTokens.OnSurfaceVariant
+private val NavigationBarHeight = 64.dp
+
 /*@VisibleForTesting*/
-internal val TopIconItemVerticalPadding = NavigationBarVerticalItemTokens.ContainerBetweenSpace
+internal val TopIconItemVerticalPadding = 6.dp
 /*@VisibleForTesting*/
-internal val TopIconIndicatorVerticalPadding =
-    (NavigationBarVerticalItemTokens.ActiveIndicatorHeight -
-        NavigationBarVerticalItemTokens.IconSize) / 2
+internal val TopIconIndicatorVerticalPadding = (TopIconItemActiveIndicatorHeight - IconSize) / 2
 /*@VisibleForTesting*/
-internal val TopIconIndicatorHorizontalPadding =
-    (NavigationBarVerticalItemTokens.ActiveIndicatorWidth -
-        NavigationBarVerticalItemTokens.IconSize) / 2
+internal val TopIconIndicatorHorizontalPadding = (TopIconItemActiveIndicatorWidth - IconSize) / 2
 /*@VisibleForTesting*/
-internal val StartIconIndicatorVerticalPadding =
-    (NavigationBarHorizontalItemTokens.ActiveIndicatorHeight -
-        NavigationBarHorizontalItemTokens.IconSize) / 2
+internal val StartIconIndicatorVerticalPadding = (StartIconItemActiveIndicatorHeight - IconSize) / 2
 /*@VisibleForTesting*/
 internal val TopIconIndicatorToLabelPadding: Dp = 4.dp
 /*@VisibleForTesting*/
-internal val StartIconIndicatorHorizontalPadding =
-    NavigationBarHorizontalItemTokens.ActiveIndicatorLeadingSpace
+internal val StartIconIndicatorHorizontalPadding = 16.dp /* TODO: Replace with token. */
 /*@VisibleForTesting*/
-internal val StartIconToLabelPadding = NavigationBarTokens.ItemActiveIndicatorIconLabelSpace
+internal val StartIconToLabelPadding = 4.dp /* TODO: Replace with token. */

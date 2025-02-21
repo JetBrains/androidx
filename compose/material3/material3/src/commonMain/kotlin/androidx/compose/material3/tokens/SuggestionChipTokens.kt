@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// VERSION: 7_0_1
+// VERSION: v0_210
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 package androidx.compose.material3.tokens
@@ -39,7 +39,7 @@ internal object SuggestionChipTokens {
     val FlatDisabledOutlineColor = ColorSchemeKeyTokens.OnSurface
     val FlatDisabledOutlineOpacity = 0.12f
     val FlatFocusOutlineColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val FlatOutlineColor = ColorSchemeKeyTokens.OutlineVariant
+    val FlatOutlineColor = ColorSchemeKeyTokens.Outline
     val FlatOutlineWidth = 1.0.dp
     val FocusIndicatorColor = ColorSchemeKeyTokens.Secondary
     val FocusLabelTextColor = ColorSchemeKeyTokens.OnSurfaceVariant

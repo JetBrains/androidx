@@ -18,10 +18,9 @@ package androidx.compose.material3
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.draggable
@@ -43,11 +42,9 @@ import androidx.compose.material3.internal.DraggableAnchors
 import androidx.compose.material3.internal.Strings
 import androidx.compose.material3.internal.draggableAnchors
 import androidx.compose.material3.internal.getString
-import androidx.compose.material3.tokens.MotionSchemeKeyTokens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -59,7 +56,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.isSpecified
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.collapse
@@ -95,13 +91,13 @@ import kotlinx.coroutines.launch
  * A simple example of a modal bottom sheet looks like this:
  *
  * @sample androidx.compose.material3.samples.ModalBottomSheetSample
+ *
  * @param onDismissRequest Executes when the user clicks outside of the bottom sheet, after sheet
  *   animates to [Hidden].
  * @param modifier Optional [Modifier] for the bottom sheet.
  * @param sheetState The state of the bottom sheet.
  * @param sheetMaxWidth [Dp] that defines what the maximum width the sheet will take. Pass in
  *   [Dp.Unspecified] for a sheet that spans the entire screen width.
- * @param sheetGesturesEnabled Whether the bottom sheet can be interacted with by gestures.
  * @param shape The shape of the bottom sheet.
  * @param containerColor The color used for the background of this bottom sheet
  * @param contentColor The preferred color for content inside this bottom sheet. Defaults to either
@@ -125,7 +121,6 @@ fun ModalBottomSheet(
     modifier: Modifier = Modifier,
     sheetState: SheetState = rememberModalBottomSheetState(),
     sheetMaxWidth: Dp = BottomSheetDefaults.SheetMaxWidth,
-    sheetGesturesEnabled: Boolean = true,
     shape: Shape = BottomSheetDefaults.ExpandedShape,
     containerColor: Color = BottomSheetDefaults.ContainerColor,
     contentColor: Color = contentColorFor(containerColor),
@@ -133,24 +128,9 @@ fun ModalBottomSheet(
     scrimColor: Color = BottomSheetDefaults.ScrimColor,
     dragHandle: @Composable (() -> Unit)? = { BottomSheetDefaults.DragHandle() },
     contentWindowInsets: @Composable () -> WindowInsets = { BottomSheetDefaults.windowInsets },
-    properties: ModalBottomSheetProperties =
-        ModalBottomSheetProperties(
-            isAppearanceLightStatusBars = contentColor.isDark(),
-            isAppearanceLightNavigationBars = contentColor.isDark()
-        ),
+    properties: ModalBottomSheetProperties = ModalBottomSheetDefaults.properties,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    // TODO Load the motionScheme tokens from the component tokens file
-    val anchoredDraggableMotion: FiniteAnimationSpec<Float> =
-        MotionSchemeKeyTokens.DefaultSpatial.value()
-    val showMotion: FiniteAnimationSpec<Float> = MotionSchemeKeyTokens.DefaultSpatial.value()
-    val hideMotion: FiniteAnimationSpec<Float> = MotionSchemeKeyTokens.FastEffects.value()
-
-    SideEffect {
-        sheetState.showMotionSpec = showMotion
-        sheetState.hideMotionSpec = hideMotion
-        sheetState.anchoredDraggableMotionSpec = anchoredDraggableMotion
-    }
     val scope = rememberCoroutineScope()
     val animateToDismiss: () -> Unit = {
         if (sheetState.anchoredDraggableState.confirmValueChange(Hidden)) {
@@ -200,7 +180,6 @@ fun ModalBottomSheet(
                 modifier,
                 sheetState,
                 sheetMaxWidth,
-                sheetGesturesEnabled,
                 shape,
                 containerColor,
                 contentColor,
@@ -216,44 +195,6 @@ fun ModalBottomSheet(
     }
 }
 
-@Deprecated(
-    level = DeprecationLevel.HIDDEN,
-    message = "Maintained for Binary compatibility. Use overload with sheetGesturesEnabled param."
-)
-@Composable
-@ExperimentalMaterial3Api
-fun ModalBottomSheet(
-    onDismissRequest: () -> Unit,
-    modifier: Modifier = Modifier,
-    sheetState: SheetState = rememberModalBottomSheetState(),
-    sheetMaxWidth: Dp = BottomSheetDefaults.SheetMaxWidth,
-    shape: Shape = BottomSheetDefaults.ExpandedShape,
-    containerColor: Color = BottomSheetDefaults.ContainerColor,
-    contentColor: Color = contentColorFor(containerColor),
-    tonalElevation: Dp = 0.dp,
-    scrimColor: Color = BottomSheetDefaults.ScrimColor,
-    dragHandle: @Composable (() -> Unit)? = { BottomSheetDefaults.DragHandle() },
-    contentWindowInsets: @Composable () -> WindowInsets = { BottomSheetDefaults.windowInsets },
-    properties: ModalBottomSheetProperties = ModalBottomSheetDefaults.properties,
-    content: @Composable ColumnScope.() -> Unit,
-) =
-    ModalBottomSheet(
-        onDismissRequest = onDismissRequest,
-        modifier = modifier,
-        sheetState = sheetState,
-        sheetMaxWidth = sheetMaxWidth,
-        sheetGesturesEnabled = true,
-        shape = shape,
-        containerColor = containerColor,
-        contentColor = contentColor,
-        tonalElevation = tonalElevation,
-        scrimColor = scrimColor,
-        dragHandle = dragHandle,
-        contentWindowInsets = contentWindowInsets,
-        properties = properties,
-        content = content,
-    )
-
 @Composable
 @ExperimentalMaterial3Api
 internal fun BoxScope.ModalBottomSheetContent(
@@ -264,7 +205,6 @@ internal fun BoxScope.ModalBottomSheetContent(
     modifier: Modifier = Modifier,
     sheetState: SheetState = rememberModalBottomSheetState(),
     sheetMaxWidth: Dp = BottomSheetDefaults.SheetMaxWidth,
-    sheetGesturesEnabled: Boolean = true,
     shape: Shape = BottomSheetDefaults.ExpandedShape,
     containerColor: Color = BottomSheetDefaults.ContainerColor,
     contentColor: Color = contentColorFor(containerColor),
@@ -281,18 +221,14 @@ internal fun BoxScope.ModalBottomSheetContent(
                 .align(Alignment.TopCenter)
                 .widthIn(max = sheetMaxWidth)
                 .fillMaxWidth()
-                .then(
-                    if (sheetGesturesEnabled)
-                        Modifier.nestedScroll(
-                            remember(sheetState) {
-                                ConsumeSwipeWithinBottomSheetBoundsNestedScrollConnection(
-                                    sheetState = sheetState,
-                                    orientation = Orientation.Vertical,
-                                    onFling = settleToDismiss
-                                )
-                            }
+                .nestedScroll(
+                    remember(sheetState) {
+                        ConsumeSwipeWithinBottomSheetBoundsNestedScrollConnection(
+                            sheetState = sheetState,
+                            orientation = Orientation.Vertical,
+                            onFling = settleToDismiss
                         )
-                    else Modifier
+                    }
                 )
                 .draggableAnchors(sheetState.anchoredDraggableState, Orientation.Vertical) {
                     sheetSize,
@@ -312,7 +248,8 @@ internal fun BoxScope.ModalBottomSheetContent(
                     val newTarget =
                         when (sheetState.anchoredDraggableState.targetValue) {
                             Hidden -> Hidden
-                            PartiallyExpanded -> {
+                            PartiallyExpanded,
+                            Expanded -> {
                                 val hasPartiallyExpandedState =
                                     newAnchors.hasAnchorFor(PartiallyExpanded)
                                 val newTarget =
@@ -320,16 +257,13 @@ internal fun BoxScope.ModalBottomSheetContent(
                                     else if (newAnchors.hasAnchorFor(Expanded)) Expanded else Hidden
                                 newTarget
                             }
-                            Expanded -> {
-                                if (newAnchors.hasAnchorFor(Expanded)) Expanded else Hidden
-                            }
                         }
                     return@draggableAnchors newAnchors to newTarget
                 }
                 .draggable(
                     state = sheetState.anchoredDraggableState.draggableState,
                     orientation = Orientation.Vertical,
-                    enabled = sheetGesturesEnabled && sheetState.isVisible,
+                    enabled = sheetState.isVisible,
                     startDragImmediately = sheetState.anchoredDraggableState.isAnimationRunning,
                     onDragStopped = { settleToDismiss(it) }
                 )
@@ -347,85 +281,59 @@ internal fun BoxScope.ModalBottomSheetContent(
                         transformOrigin =
                             TransformOrigin(0.5f, (sheetOffset + sheetHeight) / sheetHeight)
                     }
-                }
-                // Scale up the Surface vertically in case the sheet's offset overflows below the
-                // min anchor. This is done to avoid showing a gap when the sheet opens and bounces
-                // when it's applied with a bouncy motion. Note that the content inside the Surface
-                // is scaled back down to maintain its aspect ratio (see below).
-                .verticalScaleUp(sheetState),
+                },
         shape = shape,
         color = containerColor,
         contentColor = contentColor,
         tonalElevation = tonalElevation,
     ) {
         Column(
-            Modifier.fillMaxWidth()
-                .windowInsetsPadding(contentWindowInsets())
-                .graphicsLayer {
-                    val progress = predictiveBackProgress.value
-                    val predictiveBackScaleX = calculatePredictiveBackScaleX(progress)
-                    val predictiveBackScaleY = calculatePredictiveBackScaleY(progress)
+            Modifier.fillMaxWidth().windowInsetsPadding(contentWindowInsets()).graphicsLayer {
+                val progress = predictiveBackProgress.value
+                val predictiveBackScaleX = calculatePredictiveBackScaleX(progress)
+                val predictiveBackScaleY = calculatePredictiveBackScaleY(progress)
 
-                    // Preserve the original aspect ratio and alignment of the child content.
-                    scaleY =
-                        if (predictiveBackScaleY != 0f) predictiveBackScaleX / predictiveBackScaleY
-                        else 1f
-                    transformOrigin = PredictiveBackChildTransformOrigin
-                }
-                // Scale the content down in case the sheet offset overflows below the min anchor.
-                // The wrapping Surface is scaled up, so this is done to maintain the content's
-                // aspect ratio.
-                .verticalScaleDown(sheetState)
+                // Preserve the original aspect ratio and alignment of the child content.
+                scaleY =
+                    if (predictiveBackScaleY != 0f) predictiveBackScaleX / predictiveBackScaleY
+                    else 1f
+                transformOrigin = PredictiveBackChildTransformOrigin
+            }
         ) {
             if (dragHandle != null) {
                 val collapseActionLabel = getString(Strings.BottomSheetPartialExpandDescription)
                 val dismissActionLabel = getString(Strings.BottomSheetDismissDescription)
                 val expandActionLabel = getString(Strings.BottomSheetExpandDescription)
                 Box(
-                    modifier =
-                        Modifier.align(Alignment.CenterHorizontally)
-                            .clickable {
-                                when (sheetState.currentValue) {
-                                    Expanded -> animateToDismiss()
-                                    PartiallyExpanded -> scope.launch { sheetState.expand() }
-                                    else -> scope.launch { sheetState.show() }
+                    Modifier.align(Alignment.CenterHorizontally).semantics(
+                        mergeDescendants = true
+                    ) {
+                        // Provides semantics to interact with the bottomsheet based on its
+                        // current value.
+                        with(sheetState) {
+                            dismiss(dismissActionLabel) {
+                                animateToDismiss()
+                                true
+                            }
+                            if (currentValue == PartiallyExpanded) {
+                                expand(expandActionLabel) {
+                                    if (anchoredDraggableState.confirmValueChange(Expanded)) {
+                                        scope.launch { sheetState.expand() }
+                                    }
+                                    true
+                                }
+                            } else if (hasPartiallyExpandedState) {
+                                collapse(collapseActionLabel) {
+                                    if (
+                                        anchoredDraggableState.confirmValueChange(PartiallyExpanded)
+                                    ) {
+                                        scope.launch { partialExpand() }
+                                    }
+                                    true
                                 }
                             }
-                            .semantics(mergeDescendants = true) {
-                                // Provides semantics to interact with the bottomsheet based on its
-                                // current value.
-                                if (sheetGesturesEnabled) {
-                                    with(sheetState) {
-                                        dismiss(dismissActionLabel) {
-                                            animateToDismiss()
-                                            true
-                                        }
-                                        if (currentValue == PartiallyExpanded) {
-                                            expand(expandActionLabel) {
-                                                if (
-                                                    anchoredDraggableState.confirmValueChange(
-                                                        Expanded
-                                                    )
-                                                ) {
-                                                    scope.launch { sheetState.expand() }
-                                                }
-                                                true
-                                            }
-                                        } else if (hasPartiallyExpandedState) {
-                                            collapse(collapseActionLabel) {
-                                                if (
-                                                    anchoredDraggableState.confirmValueChange(
-                                                        PartiallyExpanded
-                                                    )
-                                                ) {
-                                                    scope.launch { partialExpand() }
-                                                }
-                                                true
-                                            }
-                                        }
-                                    }
-                                }
-                            },
+                        }
+                    }
                 ) {
                     dragHandle()
                 }
@@ -458,23 +366,13 @@ private fun GraphicsLayerScope.calculatePredictiveBackScaleY(progress: Float): F
  *
  * @param shouldDismissOnBackPress Whether the modal bottom sheet can be dismissed by pressing the
  *   back button. If true, pressing the back button will call onDismissRequest.
- * @param isAppearanceLightStatusBars If true, changes the foreground color of the status bars to
- *   light so that the items on the bar can be read clearly. If false, reverts to the default
- *   appearance.
- * @param isAppearanceLightNavigationBars If true, changes the foreground color of the navigation
- *   bars to light so that the items on the bar can be read clearly. If false, reverts to the
- *   default appearance.
  */
 @Immutable
 @ExperimentalMaterial3Api
 expect class ModalBottomSheetProperties(
     shouldDismissOnBackPress: Boolean = true,
-    isAppearanceLightStatusBars: Boolean = true,
-    isAppearanceLightNavigationBars: Boolean = true,
 ) {
     val shouldDismissOnBackPress: Boolean
-    val isAppearanceLightStatusBars: Boolean
-    val isAppearanceLightNavigationBars: Boolean
 }
 
 /** Default values for [ModalBottomSheet] */
@@ -508,13 +406,9 @@ fun rememberModalBottomSheetState(
 
 @Composable
 private fun Scrim(color: Color, onDismissRequest: () -> Unit, visible: Boolean) {
-    // TODO Load the motionScheme tokens from the component tokens file
     if (color.isSpecified) {
         val alpha by
-            animateFloatAsState(
-                targetValue = if (visible) 1f else 0f,
-                animationSpec = MotionSchemeKeyTokens.DefaultEffects.value()
-            )
+        animateFloatAsState(targetValue = if (visible) 1f else 0f, animationSpec = TweenSpec())
         val closeSheet = getString(Strings.CloseSheet)
         val dismissSheet =
             if (visible) {
@@ -544,11 +438,6 @@ internal expect fun ModalBottomSheetDialog(
     predictiveBackProgress: Animatable<Float, AnimationVector1D>,
     content: @Composable () -> Unit
 )
-
-/** Determines if a color should be considered light or dark. */
-internal fun Color.isDark(): Boolean {
-    return this != Color.Transparent && luminance() <= 0.5
-}
 
 private val PredictiveBackMaxScaleXDistance = 48.dp
 private val PredictiveBackMaxScaleYDistance = 24.dp
