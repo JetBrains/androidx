@@ -16,6 +16,7 @@
 
 package androidx.compose.ui.platform.accessibility
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.Strings
 import androidx.compose.ui.platform.getString
@@ -150,56 +151,77 @@ internal data class AccessibilityScrollEventResult(
 
 /**
  * Try to perform a scroll on any ancestor of this element if the element is not fully visible.
- * @param rect to place in the center of scrollable area
+ * @param targetRect to place in the center of scrollable area
  * @param safeAreaRectInWindow safe area rect to reduce focusable borders
- * @return true if the scroll was successful, otherwise returns false
  */
-internal fun SemanticsNode.scrollToCenterRectIfNeeded(
-    rect: Rect,
+internal suspend fun SemanticsNode.scrollToCenterRectIfNeeded(
+    targetRect: Rect,
     safeAreaRectInWindow: Rect
-): Boolean {
-    val scrollableAncestor = scrollableByAncestor ?: return false
-    val scrollableAncestorRect = scrollableAncestor.boundsInWindow
-    val scrollableViewportRect = scrollableAncestorRect.intersect(safeAreaRectInWindow)
+) {
+    val scrollByOffset = unmergedConfig.getOrNull(SemanticsActions.ScrollByOffset)
+        ?: unmergedConfig.getOrNull(SemanticsActions.ScrollBy)?.action?.let { mapScrollBy(it) }
+        ?: return parent?.scrollToCenterRectIfNeeded(targetRect, safeAreaRectInWindow) ?: Unit
 
-    fun Float.invertIfNeeded() = if (isRTL) -this else this
+    // Inverts offset in both axes when scrolling in these axes is inverted
+    fun Offset.invertIfNeeded() = Offset(
+        if (isInvertedHorizontally xor isRTL) -x else x,
+        if (isInvertedVertically) -y else y,
+    )
 
-    val dy = if (rect.top < scrollableViewportRect.top) {
-        // The element is above the screen, scroll up
-        rect.top - scrollableViewportRect.top -
-            (scrollableAncestor.size.height - rect.size.height) / 2
-    } else if (rect.bottom > scrollableViewportRect.bottom) {
-        // The element is below the screen, scroll down
-        rect.bottom - scrollableViewportRect.bottom +
-            (scrollableAncestor.size.height - rect.size.height) / 2
-    } else {
-        0f
+    val scrollableViewportRect = unclippedBoundsInWindow.intersect(safeAreaRectInWindow)
+    val clippedTargetRect = scrollableViewportRect.intersect(targetRect)
+    val geometryOffset = (targetRect.center - scrollableViewportRect.center).invertIfNeeded()
+
+    // There is no need to scroll to the target rect if it is within visible boundaries.
+    val consumedOffsetIfNodeInBounds = Offset(
+        x = if (clippedTargetRect.width == targetRect.width) geometryOffset.x else 0f,
+        y = if (clippedTargetRect.height == targetRect.height) geometryOffset.y else 0f,
+    )
+    val scrollOffset = geometryOffset - consumedOffsetIfNodeInBounds
+
+    if (scrollOffset == Offset.Zero) {
+        return
     }
 
-    val dx = if (rect.left < scrollableViewportRect.left) {
-        // The element is to the left of the screen, scroll left
-        (rect.left - scrollableViewportRect.left -
-            (scrollableAncestor.size.width - rect.size.width) / 2).invertIfNeeded()
-    } else if (rect.right > scrollableViewportRect.right) {
-        // The element is to the right of the screen, scroll right
-        (rect.right - scrollableViewportRect.right +
-            (scrollableAncestor.size.width - rect.size.width) / 2).invertIfNeeded()
-    } else {
-        0f
-    }
-    return scrollByIfPossible(dx, dy)
-}
-
-private fun SemanticsNode.scrollByIfPossible(dx: Float, dy: Float): Boolean {
-    // if it has scrollBy action, invoke it, otherwise try to scroll the parent
-    val action = config.getOrNull(SemanticsActions.ScrollBy)?.action
-
-    return if (action != null) {
-        action(dx, dy)
-    } else {
-        parent?.scrollByIfPossible(dx, dy) ?: false
+    val consumedByScroll = scrollByOffset(scrollOffset)
+    if (consumedByScroll + consumedOffsetIfNodeInBounds != geometryOffset) {
+        val translatedRect = targetRect.translate(-consumedByScroll.invertIfNeeded())
+        parent?.scrollToCenterRectIfNeeded(translatedRect, safeAreaRectInWindow)
     }
 }
+
+private fun SemanticsNode.mapScrollBy(
+    scrollBy: (Float, Float) -> Boolean
+): suspend (offset: Offset) -> Offset = { offset: Offset ->
+    val consumed = Offset(
+        x = unmergedConfig.getOrNull(SemanticsProperties.HorizontalScrollAxisRange)
+            .consumeScrollDirection(offset.x),
+        y = unmergedConfig.getOrNull(SemanticsProperties.VerticalScrollAxisRange)
+            .consumeScrollDirection(offset.y)
+    )
+
+    scrollBy(offset.x, offset.y)
+
+    consumed
+}
+
+
+// Due to implementation specifics of the lazy list, it's impossible to determine the exact
+// amount of scroll offset that will be consumed after scrolling. Therefore, the method will consume
+// the entire value if scrolling in the given direction is available.
+private fun ScrollAxisRange?.consumeScrollDirection(value: Float): Float = when {
+    this == null -> 0f
+    value < 0f && this.value() > 0f -> value // Can scroll backward
+    value > 0f && this.value() < this.maxValue() -> value // Can scroll forward
+    else -> 0f
+}
+
+private val SemanticsNode.isInvertedHorizontally: Boolean
+    get() = unmergedConfig.getOrNull(SemanticsProperties.HorizontalScrollAxisRange)
+        ?.reverseScrolling ?: false
+private val SemanticsNode.isInvertedVertically: Boolean
+    get() = unmergedConfig.getOrNull(SemanticsProperties.VerticalScrollAxisRange)
+        ?.reverseScrolling ?: false
 
 internal val SemanticsNode.unclippedBoundsInWindow: Rect
     get() = Rect(positionInWindow, size.toSize())
@@ -234,24 +256,23 @@ private val SemanticsNode.isHiddenFromAccessibility: Boolean
     get() = unmergedConfig.contains(HideFromAccessibility) ||
         unmergedConfig.contains(InvisibleToUser)
 
-/**
- * Closest ancestor that has [SemanticsActions.ScrollBy] action
- */
-private val SemanticsNode.scrollableByAncestor: SemanticsNode?
-    get() {
-        var current: SemanticsNode? = this
-
-        while (current != null) {
-            if (current.config.getOrNull(SemanticsActions.ScrollBy) != null) {
-                return current
-            }
-
-            current = current.parent
-        }
-
-        return null
-    }
+private val SemanticsNode.canScroll: Boolean
+    get() = unmergedConfig.contains(SemanticsActions.ScrollBy) ||
+        unmergedConfig.contains(SemanticsActions.ScrollByOffset)
 
 private val UIAccessibilityScrollDirection.isHorizontal get() =
     this == UIAccessibilityScrollDirectionRight || this == UIAccessibilityScrollDirectionLeft
 
+internal val SemanticsNode.allScrollableParentNodeIds: Set<Int> get() {
+    var iterator: SemanticsNode? = this
+    val result = mutableSetOf<Int>()
+
+    while (iterator != null) {
+        if (iterator.canScroll) {
+            result.add(iterator.id)
+        }
+        iterator = iterator.parent
+    }
+
+    return result
+}
