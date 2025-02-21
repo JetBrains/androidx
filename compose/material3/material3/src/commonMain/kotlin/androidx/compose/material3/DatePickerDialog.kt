@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,27 +24,26 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.window.DialogProperties
 
 /**
- * <a href="https://m3.material.io/components/date-pickers/overview" class="external"
- * target="_blank">Material Design date picker dialog</a>.
+ * <a href="https://m3.material.io/components/date-pickers/overview" class="external" target="_blank">Material Design date picker dialog</a>.
  *
  * A dialog for displaying a [DatePicker]. Date pickers let people select a date.
  *
  * A sample for displaying a [DatePicker] in a dialog:
- *
  * @sample androidx.compose.material3.samples.DatePickerDialogSample
- * @param onDismissRequest called when the user tries to dismiss the Dialog by clicking outside or
- *   pressing the back button. This is not called when the dismiss button is clicked.
+ *
+ * @param onDismissRequest called when the user tries to dismiss the Dialog by clicking outside
+ * or pressing the back button. This is not called when the dismiss button is clicked.
  * @param confirmButton button which is meant to confirm a proposed action, thus resolving what
- *   triggered the dialog. The dialog does not set up any events for this button, nor does it
- *   control its enablement, so those need to be set up by the caller.
+ * triggered the dialog. The dialog does not set up any events for this button, nor does it control
+ * its enablement, so those need to be set up by the caller.
  * @param modifier the [Modifier] to be applied to this dialog's content.
  * @param dismissButton button which is meant to dismiss the dialog. The dialog does not set up any
- *   events for this button so they need to be set up by the caller.
+ * events for this button so they need to be set up by the caller.
  * @param shape defines the dialog's surface shape as well its shadow
  * @param tonalElevation when [DatePickerColors.containerColor] is [ColorScheme.surface], a higher
- *   the elevation will result in a darker color in light theme and lighter color in dark theme
+ * the elevation will result in a darker color in light theme and lighter color in dark theme
  * @param colors [DatePickerColors] that will be used to resolve the colors used for this date
- *   picker in different states. See [DatePickerDefaults.colors].
+ * picker in different states. See [DatePickerDefaults.colors].
  * @param properties typically platform specific properties to further configure the dialog
  * @param content the content of the dialog (i.e. a [DatePicker], for example)
  */

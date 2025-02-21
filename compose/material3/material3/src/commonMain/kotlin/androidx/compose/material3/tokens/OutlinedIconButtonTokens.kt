@@ -13,28 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// VERSION: v0_9_0
+// VERSION: v0_103
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 package androidx.compose.material3.tokens
 
+import androidx.compose.ui.unit.dp
+
 internal object OutlinedIconButtonTokens {
-    val DisabledContainerColor = ColorSchemeKeyTokens.OnSurface
-    val DisabledContainerOpacity = 0.12f
+    val ContainerShape = ShapeKeyTokens.CornerFull
+    val ContainerSize = 40.0.dp
     val DisabledColor = ColorSchemeKeyTokens.OnSurface
-    val DisabledOpacity = 0.38f
-    val FocusedColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val HoveredColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val Color = ColorSchemeKeyTokens.OnSurfaceVariant
-    val OutlineColor = ColorSchemeKeyTokens.OutlineVariant
-    val PressedColor = ColorSchemeKeyTokens.OnSurface
+    const val DisabledOpacity = 0.38f
+    val DisabledSelectedContainerColor = ColorSchemeKeyTokens.OnSurface
+    const val DisabledSelectedContainerOpacity = 0.12f
+    val DisabledUnselectedOutlineColor = ColorSchemeKeyTokens.OnSurface
+    const val DisabledUnselectedOutlineOpacity = 0.12f
+    val Size = 24.0.dp
     val SelectedContainerColor = ColorSchemeKeyTokens.InverseSurface
-    val SelectedFocusedColor = ColorSchemeKeyTokens.InverseOnSurface
-    val SelectedHoveredColor = ColorSchemeKeyTokens.InverseOnSurface
+    val SelectedFocusColor = ColorSchemeKeyTokens.InverseOnSurface
+    val SelectedHoverColor = ColorSchemeKeyTokens.InverseOnSurface
     val SelectedColor = ColorSchemeKeyTokens.InverseOnSurface
     val SelectedPressedColor = ColorSchemeKeyTokens.InverseOnSurface
-    val UnselectedFocusedColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val UnselectedHoveredColor = ColorSchemeKeyTokens.OnSurfaceVariant
+    val UnselectedFocusColor = ColorSchemeKeyTokens.OnSurfaceVariant
+    val UnselectedHoverColor = ColorSchemeKeyTokens.OnSurfaceVariant
     val UnselectedColor = ColorSchemeKeyTokens.OnSurfaceVariant
+    val UnselectedOutlineColor = ColorSchemeKeyTokens.Outline
+    val UnselectedOutlineWidth = 1.0.dp
     val UnselectedPressedColor = ColorSchemeKeyTokens.OnSurface
 }

@@ -25,13 +25,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.internal.childSemantics
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -76,6 +74,7 @@ import androidx.compose.ui.unit.dp
  * Surface sample:
  *
  * @sample androidx.compose.material3.samples.SurfaceSample
+ *
  * @param modifier Modifier to be applied to the layout corresponding to the surface
  * @param shape Defines the surface's shape as well its shadow.
  * @param color The background color. Use [Color.Transparent] to have no color.
@@ -89,7 +88,6 @@ import androidx.compose.ui.unit.dp
  *   separation from a patterned background. Note that It will not affect z index of the Surface. If
  *   you want to change the drawing order you can use `Modifier.zIndex`.
  * @param border Optional border to draw on top of the surface
- * @param content The content to be displayed on this Surface
  */
 @Composable
 @NonRestartableComposable
@@ -119,8 +117,6 @@ fun Surface(
                         shadowElevation = with(LocalDensity.current) { shadowElevation.toPx() }
                     )
                     .semantics(mergeDescendants = false) {
-                        // TODO(b/347038246): replace `isContainer` with `isTraversalGroup` with new
-                        // pruning API.
                         @Suppress("DEPRECATION")
                         isContainer = true
                     }
@@ -170,6 +166,7 @@ fun Surface(
  * Clickable surface sample:
  *
  * @sample androidx.compose.material3.samples.ClickableSurfaceSample
+ *
  * @param onClick callback to be called when the surface is clicked
  * @param modifier Modifier to be applied to the layout corresponding to the surface
  * @param enabled Controls the enabled state of the surface. When `false`, this surface will not be
@@ -189,7 +186,6 @@ fun Surface(
  *   emitting [Interaction]s for this surface. You can use this to change the surface's appearance
  *   or preview the surface in different states. Note that if `null` is provided, interactions will
  *   still happen internally.
- * @param content The content to be displayed on this Surface
  */
 @Composable
 @NonRestartableComposable
@@ -206,8 +202,6 @@ fun Surface(
     interactionSource: MutableInteractionSource? = null,
     content: @Composable () -> Unit
 ) {
-    @Suppress("NAME_SHADOWING")
-    val interactionSource = interactionSource ?: remember { MutableInteractionSource() }
     val absoluteElevation = LocalAbsoluteTonalElevation.current + tonalElevation
     CompositionLocalProvider(
         LocalContentColor provides contentColor,
@@ -226,12 +220,10 @@ fun Surface(
                     )
                     .clickable(
                         interactionSource = interactionSource,
-                        indication = ripple(),
+                        indication = rippleOrFallbackImplementation(),
                         enabled = enabled,
                         onClick = onClick
-                    )
-                    .childSemantics()
-                    .interactionSourceData(interactionSource),
+                    ),
             propagateMinConstraints = true
         ) {
             content()
@@ -275,6 +267,7 @@ fun Surface(
  * Selectable surface sample:
  *
  * @sample androidx.compose.material3.samples.SelectableSurfaceSample
+ *
  * @param selected whether or not this Surface is selected
  * @param onClick callback to be called when the surface is clicked
  * @param modifier Modifier to be applied to the layout corresponding to the surface
@@ -295,7 +288,6 @@ fun Surface(
  *   emitting [Interaction]s for this surface. You can use this to change the surface's appearance
  *   or preview the surface in different states. Note that if `null` is provided, interactions will
  *   still happen internally.
- * @param content The content to be displayed on this Surface
  */
 @Composable
 @NonRestartableComposable
@@ -313,8 +305,6 @@ fun Surface(
     interactionSource: MutableInteractionSource? = null,
     content: @Composable () -> Unit
 ) {
-    @Suppress("NAME_SHADOWING")
-    val interactionSource = interactionSource ?: remember { MutableInteractionSource() }
     val absoluteElevation = LocalAbsoluteTonalElevation.current + tonalElevation
     CompositionLocalProvider(
         LocalContentColor provides contentColor,
@@ -334,12 +324,10 @@ fun Surface(
                     .selectable(
                         selected = selected,
                         interactionSource = interactionSource,
-                        indication = ripple(),
+                        indication = rippleOrFallbackImplementation(),
                         enabled = enabled,
                         onClick = onClick
-                    )
-                    .childSemantics()
-                    .interactionSourceData(interactionSource),
+                    ),
             propagateMinConstraints = true
         ) {
             content()
@@ -383,6 +371,7 @@ fun Surface(
  * Toggleable surface sample:
  *
  * @sample androidx.compose.material3.samples.ToggleableSurfaceSample
+ *
  * @param checked whether or not this Surface is toggled on or off
  * @param onCheckedChange callback to be invoked when the toggleable Surface is clicked
  * @param modifier Modifier to be applied to the layout corresponding to the surface
@@ -403,7 +392,6 @@ fun Surface(
  *   emitting [Interaction]s for this surface. You can use this to change the surface's appearance
  *   or preview the surface in different states. Note that if `null` is provided, interactions will
  *   still happen internally.
- * @param content The content to be displayed on this Surface
  */
 @Composable
 @NonRestartableComposable
@@ -421,8 +409,6 @@ fun Surface(
     interactionSource: MutableInteractionSource? = null,
     content: @Composable () -> Unit
 ) {
-    @Suppress("NAME_SHADOWING")
-    val interactionSource = interactionSource ?: remember { MutableInteractionSource() }
     val absoluteElevation = LocalAbsoluteTonalElevation.current + tonalElevation
     CompositionLocalProvider(
         LocalContentColor provides contentColor,
@@ -442,12 +428,10 @@ fun Surface(
                     .toggleable(
                         value = checked,
                         interactionSource = interactionSource,
-                        indication = ripple(),
+                        indication = rippleOrFallbackImplementation(),
                         enabled = enabled,
                         onValueChange = onCheckedChange
-                    )
-                    .childSemantics()
-                    .interactionSourceData(interactionSource),
+                    ),
             propagateMinConstraints = true
         ) {
             content()

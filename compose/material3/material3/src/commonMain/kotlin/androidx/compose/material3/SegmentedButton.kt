@@ -20,9 +20,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.VectorConverter
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
@@ -34,7 +34,6 @@ import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
@@ -44,8 +43,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CornerBasedShape
-import androidx.compose.material3.internal.Icons
-import androidx.compose.material3.tokens.MotionSchemeKeyTokens
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.tokens.MotionTokens
 import androidx.compose.material3.tokens.OutlinedSegmentedButtonTokens
 import androidx.compose.material3.tokens.OutlinedSegmentedButtonTokens.DisabledLabelTextColor
 import androidx.compose.material3.tokens.OutlinedSegmentedButtonTokens.DisabledLabelTextOpacity
@@ -104,6 +104,7 @@ import kotlinx.coroutines.launch
  * For a sample showing Segmented button with only checked icons see:
  *
  * @sample androidx.compose.material3.samples.SegmentedButtonMultiSelectSample
+ *
  * @param checked whether this button is checked or not
  * @param onCheckedChange callback to be invoked when the button is clicked. therefore the change of
  *   checked state in requested.
@@ -114,9 +115,6 @@ import kotlinx.coroutines.launch
  *   services.
  * @param colors [SegmentedButtonColors] that will be used to resolve the colors used for this
  * @param border the border for this button, see [SegmentedButtonColors] Button in different states
- * @param contentPadding the spacing values to apply internally between the container and the
- *     * content
- *
  * @param interactionSource an optional hoisted [MutableInteractionSource] for observing and
  *   emitting [Interaction]s for this button. You can use this to change the button's appearance or
  *   preview the button in different states. Note that if `null` is provided, interactions will
@@ -136,7 +134,6 @@ fun MultiChoiceSegmentedButtonRowScope.SegmentedButton(
     colors: SegmentedButtonColors = SegmentedButtonDefaults.colors(),
     border: BorderStroke =
         SegmentedButtonDefaults.borderStroke(colors.borderColor(enabled, checked)),
-    contentPadding: PaddingValues = SegmentedButtonDefaults.ContentPadding,
     interactionSource: MutableInteractionSource? = null,
     icon: @Composable () -> Unit = { SegmentedButtonDefaults.Icon(checked) },
     label: @Composable () -> Unit,
@@ -165,7 +162,7 @@ fun MultiChoiceSegmentedButtonRowScope.SegmentedButton(
         border = border,
         interactionSource = interactionSource
     ) {
-        SegmentedButtonContent(icon = icon, content = label, contentPadding = contentPadding)
+        SegmentedButtonContent(icon, label)
     }
 }
 
@@ -185,6 +182,7 @@ fun MultiChoiceSegmentedButtonRowScope.SegmentedButton(
  * For a sample showing Segmented button with only checked icons see:
  *
  * @sample androidx.compose.material3.samples.SegmentedButtonSingleSelectSample
+ *
  * @param selected whether this button is selected or not
  * @param onClick callback to be invoked when the button is clicked. therefore the change of checked
  *   state in requested.
@@ -195,8 +193,6 @@ fun MultiChoiceSegmentedButtonRowScope.SegmentedButton(
  *   services.
  * @param colors [SegmentedButtonColors] that will be used to resolve the colors used for this
  * @param border the border for this button, see [SegmentedButtonColors] Button in different states
- * @param contentPadding the spacing values to apply internally between the container and the
- *   content
  * @param interactionSource an optional hoisted [MutableInteractionSource] for observing and
  *   emitting [Interaction]s for this button. You can use this to change the button's appearance or
  *   preview the button in different states. Note that if `null` is provided, interactions will
@@ -216,7 +212,6 @@ fun SingleChoiceSegmentedButtonRowScope.SegmentedButton(
     colors: SegmentedButtonColors = SegmentedButtonDefaults.colors(),
     border: BorderStroke =
         SegmentedButtonDefaults.borderStroke(colors.borderColor(enabled, selected)),
-    contentPadding: PaddingValues = SegmentedButtonDefaults.ContentPadding,
     interactionSource: MutableInteractionSource? = null,
     icon: @Composable () -> Unit = { SegmentedButtonDefaults.Icon(selected) },
     label: @Composable () -> Unit,
@@ -246,68 +241,8 @@ fun SingleChoiceSegmentedButtonRowScope.SegmentedButton(
         border = border,
         interactionSource = interactionSource
     ) {
-        SegmentedButtonContent(icon, label, contentPadding)
+        SegmentedButtonContent(icon, label)
     }
-}
-
-@Composable
-@Deprecated(message = "kept for binary compatibility", level = DeprecationLevel.HIDDEN)
-fun MultiChoiceSegmentedButtonRowScope.SegmentedButton(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    shape: Shape,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    colors: SegmentedButtonColors = SegmentedButtonDefaults.colors(),
-    border: BorderStroke =
-        SegmentedButtonDefaults.borderStroke(colors.borderColor(enabled, checked)),
-    interactionSource: MutableInteractionSource? = null,
-    icon: @Composable () -> Unit = { SegmentedButtonDefaults.Icon(checked) },
-    label: @Composable () -> Unit,
-) {
-    SegmentedButton(
-        checked = checked,
-        onCheckedChange = onCheckedChange,
-        shape = shape,
-        modifier = modifier,
-        enabled = enabled,
-        colors = colors,
-        border = border,
-        contentPadding = SegmentedButtonDefaults.ContentPadding,
-        interactionSource = interactionSource,
-        icon = icon,
-        label = label
-    )
-}
-
-@Composable
-@Deprecated(message = "kept for binary compatibility", level = DeprecationLevel.HIDDEN)
-fun SingleChoiceSegmentedButtonRowScope.SegmentedButton(
-    selected: Boolean,
-    onClick: () -> Unit,
-    shape: Shape,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    colors: SegmentedButtonColors = SegmentedButtonDefaults.colors(),
-    border: BorderStroke =
-        SegmentedButtonDefaults.borderStroke(colors.borderColor(enabled, selected)),
-    interactionSource: MutableInteractionSource? = null,
-    icon: @Composable () -> Unit = { SegmentedButtonDefaults.Icon(selected) },
-    label: @Composable () -> Unit,
-) {
-    SegmentedButton(
-        selected = selected,
-        onClick = onClick,
-        shape = shape,
-        modifier = modifier,
-        enabled = enabled,
-        colors = colors,
-        border = border,
-        contentPadding = SegmentedButtonDefaults.ContentPadding,
-        interactionSource = interactionSource,
-        icon = icon,
-        label = label
-    )
 }
 
 /**
@@ -319,6 +254,7 @@ fun SingleChoiceSegmentedButtonRowScope.SegmentedButton(
  * is used when the selection only allows one value, for correct semantics.
  *
  * @sample androidx.compose.material3.samples.SegmentedButtonSingleSelectSample
+ *
  * @param modifier the [Modifier] to be applied to this row
  * @param space the dimension of the overlap between buttons. Should be equal to the stroke width
  *   used on the items.
@@ -356,6 +292,7 @@ fun SingleChoiceSegmentedButtonRow(
  * semantics.
  *
  * @sample androidx.compose.material3.samples.SegmentedButtonMultiSelectSample
+ *
  * @param modifier the [Modifier] to be applied to this row
  * @param space the dimension of the overlap between buttons. Should be equal to the stroke width
  *   used on the items.
@@ -385,17 +322,15 @@ fun MultiChoiceSegmentedButtonRow(
 private fun SegmentedButtonContent(
     icon: @Composable () -> Unit,
     content: @Composable () -> Unit,
-    contentPadding: PaddingValues,
 ) {
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(contentPadding)) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.padding(ButtonDefaults.TextButtonContentPadding)
+    ) {
         val typography = OutlinedSegmentedButtonTokens.LabelTextFont.value
-        // TODO Load the motionScheme tokens from the component tokens file
-        val animationSpec = MotionSchemeKeyTokens.FastSpatial.value<Int>()
         ProvideTextStyle(typography) {
             val scope = rememberCoroutineScope()
-            val measurePolicy = remember {
-                SegmentedButtonContentMeasurePolicy(scope, animationSpec)
-            }
+            val measurePolicy = remember { SegmentedButtonContentMeasurePolicy(scope) }
 
             Layout(
                 modifier = Modifier.height(IntrinsicSize.Min),
@@ -406,10 +341,8 @@ private fun SegmentedButtonContent(
     }
 }
 
-internal class SegmentedButtonContentMeasurePolicy(
-    val scope: CoroutineScope,
-    val animationSpec: AnimationSpec<Int>
-) : MultiContentMeasurePolicy {
+internal class SegmentedButtonContentMeasurePolicy(val scope: CoroutineScope) :
+    MultiContentMeasurePolicy {
     var animatable: Animatable<Int, AnimationVector1D>? = null
     private var initialOffset: Int? = null
 
@@ -441,7 +374,9 @@ internal class SegmentedButtonContentMeasurePolicy(
                 animatable
                     ?: Animatable(initialOffset!!, Int.VectorConverter).also { animatable = it }
             if (anim.targetValue != offsetX) {
-                scope.launch { anim.animateTo(offsetX, animationSpec) }
+                scope.launch {
+                    anim.animateTo(offsetX, tween(MotionTokens.DurationMedium3.toInt()))
+                }
             }
         }
 
@@ -552,7 +487,7 @@ object SegmentedButtonDefaults {
                         activeContainerColor = fromToken(SelectedContainerColor),
                         activeContentColor = fromToken(SelectedLabelTextColor),
                         activeBorderColor = fromToken(OutlineColor),
-                        inactiveContainerColor = Color.Transparent,
+                        inactiveContainerColor = surface,
                         inactiveContentColor = fromToken(UnselectedLabelTextColor),
                         inactiveBorderColor = fromToken(OutlineColor),
                         disabledActiveContainerColor = fromToken(SelectedContainerColor),
@@ -561,7 +496,7 @@ object SegmentedButtonDefaults {
                                 .copy(alpha = DisabledLabelTextOpacity),
                         disabledActiveBorderColor =
                             fromToken(OutlineColor).copy(alpha = DisabledOutlineOpacity),
-                        disabledInactiveContainerColor = Color.Transparent,
+                        disabledInactiveContainerColor = surface,
                         disabledInactiveContentColor = fromToken(DisabledLabelTextColor),
                         disabledInactiveBorderColor = fromToken(OutlineColor),
                     )
@@ -606,9 +541,6 @@ object SegmentedButtonDefaults {
     /** Icon size to use for icons used in [SegmentedButton] */
     val IconSize = OutlinedSegmentedButtonTokens.IconSize
 
-    /** The default content padding used by Segmented Buttons */
-    val ContentPadding = ButtonDefaults.TextButtonContentPadding
-
     /** And icon to indicate the segmented button is checked or selected */
     @Composable
     fun ActiveIcon() {
@@ -634,28 +566,21 @@ object SegmentedButtonDefaults {
         inactiveContent: (@Composable () -> Unit)? = null
     ) {
         if (inactiveContent == null) {
-            // TODO Load the motionScheme tokens from the component tokens file
             AnimatedVisibility(
                 visible = active,
                 exit = ExitTransition.None,
                 enter =
-                    fadeIn(MotionSchemeKeyTokens.DefaultEffects.value()) +
+                    fadeIn(tween(MotionTokens.DurationMedium3.toInt())) +
                         scaleIn(
                             initialScale = 0f,
                             transformOrigin = TransformOrigin(0f, 1f),
-                            animationSpec = MotionSchemeKeyTokens.FastSpatial.value()
+                            animationSpec = tween(MotionTokens.DurationMedium3.toInt()),
                         ),
             ) {
                 activeContent()
             }
         } else {
-            Crossfade(
-                targetState = active,
-                // TODO Load the motionScheme tokens from the component tokens file
-                animationSpec = MotionSchemeKeyTokens.DefaultEffects.value()
-            ) {
-                if (it) activeContent() else inactiveContent()
-            }
+            Crossfade(targetState = active) { if (it) activeContent() else inactiveContent() }
         }
     }
 

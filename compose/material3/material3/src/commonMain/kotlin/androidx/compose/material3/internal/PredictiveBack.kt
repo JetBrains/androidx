@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// VERSION: v0_7_0
-// GENERATED CODE - DO NOT MODIFY BY HAND
 
-package androidx.compose.material3.tokens
+package androidx.compose.material3.internal
 
-import androidx.compose.ui.unit.dp
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.Easing
 
-internal object CircularProgressIndicatorTokens {
-    val ActiveThickness = 4.0.dp
-    val ActiveWaveAmplitude = 1.6.dp
-    val ActiveWaveWavelength = 15.0.dp
-    val Size = 40.0.dp
-    val TrackActiveSpace = 4.0.dp
-    val TrackThickness = 4.0.dp
-    val WaveSize = 48.0.dp
+private val PredictiveBackEasing: Easing = CubicBezierEasing(0.1f, 0.1f, 0f, 1f)
+
+internal object PredictiveBack {
+    internal fun transform(progress: Float) = PredictiveBackEasing.transform(progress)
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 The Android Open Source Project
+ * Copyright 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// VERSION: v0_11_0
+// VERSION: v0_103
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 package androidx.compose.material3.tokens
 
 import androidx.compose.ui.unit.dp
 
-internal object ButtonXLargeTokens {
-    val ContainerHeight = 136.0.dp
-    val ContainerShapeRound = ShapeKeyTokens.CornerFull
-    val ContainerShapeSquare = ShapeKeyTokens.CornerExtraLarge
-    val IconLabelSpace = 16.0.dp
-    val IconSize = 40.0.dp
-    val LeadingSpace = 64.0.dp
-    val OutlinedOutlineWidth = 3.0.dp
-    val PressedContainerShape = ShapeKeyTokens.CornerLarge
-    val SelectedContainerShapeRound = ShapeKeyTokens.CornerFull
-    val SelectedContainerShapeSquare = ShapeKeyTokens.CornerExtraLarge
-    val TrailingSpace = 64.0.dp
+internal object TopAppBarMediumTokens {
+    val ContainerColor = ColorSchemeKeyTokens.Surface
+    val ContainerElevation = ElevationTokens.Level0
+    val ContainerHeight = 112.0.dp
+    val ContainerShape = ShapeKeyTokens.CornerNone
+    val ContainerSurfaceTintLayerColor = ColorSchemeKeyTokens.SurfaceTint
+    val HeadlineColor = ColorSchemeKeyTokens.OnSurface
+    val HeadlineFont = TypographyKeyTokens.HeadlineSmall
+    val LeadingIconColor = ColorSchemeKeyTokens.OnSurface
+    val LeadingIconSize = 24.0.dp
+    val TrailingIconColor = ColorSchemeKeyTokens.OnSurfaceVariant
+    val TrailingIconSize = 24.0.dp
 }

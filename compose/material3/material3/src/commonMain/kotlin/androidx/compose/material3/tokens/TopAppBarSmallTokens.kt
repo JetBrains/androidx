@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 The Android Open Source Project
+ * Copyright 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// VERSION: 14_0_0
+// VERSION: v0_210
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 package androidx.compose.material3.tokens
 
 import androidx.compose.ui.unit.dp
 
-internal object AppBarTokens {
-    val AvatarSize = 32.0.dp
+internal object TopAppBarSmallTokens {
     val ContainerColor = ColorSchemeKeyTokens.Surface
     val ContainerElevation = ElevationTokens.Level0
+    val ContainerHeight = 64.0.dp
     val ContainerShape = ShapeKeyTokens.CornerNone
-    val IconButtonSpace = 0.0.dp
-    val IconSize = 24.0.dp
+    val HeadlineColor = ColorSchemeKeyTokens.OnSurface
+    val HeadlineFont = TypographyKeyTokens.TitleLarge
     val LeadingIconColor = ColorSchemeKeyTokens.OnSurface
-    val LeadingSpace = 4.0.dp
+    val LeadingIconSize = 24.0.dp
     val OnScrollContainerColor = ColorSchemeKeyTokens.SurfaceContainer
     val OnScrollContainerElevation = ElevationTokens.Level2
-    val SubtitleColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val TitleColor = ColorSchemeKeyTokens.OnSurface
     val TrailingIconColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val TrailingSpace = 4.0.dp
+    val TrailingIconSize = 24.0.dp
 }

@@ -16,55 +16,31 @@
 
 package androidx.compose.material3
 
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
-import androidx.compose.material3.internal.BackHandler
-import androidx.compose.material3.internal.Icons
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.internal.MenuPosition
-import androidx.compose.material3.internal.Strings
-import androidx.compose.material3.internal.getString
 import androidx.compose.material3.tokens.FilledAutocompleteTokens
 import androidx.compose.material3.tokens.OutlinedAutocompleteTokens
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.neverEqualPolicy
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
-import androidx.compose.ui.node.ModifierNodeElement
-import androidx.compose.ui.platform.InspectorInfo
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -78,13 +54,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.constrainHeight
-import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.toSize
-import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
-import androidx.compose.ui.window.PopupProperties
 import kotlin.jvm.JvmInline
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -116,9 +87,6 @@ import kotlin.math.roundToInt
  *
  * @sample androidx.compose.material3.samples.EditableExposedDropdownMenuSample
  *
- * An example of an editable Exposed Dropdown Menu used like a MultiAutoCompleteTextView:
- *
- * @sample androidx.compose.material3.samples.MultiAutocompleteExposedDropdownMenuSample
  * @param expanded whether the menu is expanded or not
  * @param onExpandedChange called when the exposed dropdown menu is clicked and the expansion state
  *   changes.
@@ -128,135 +96,29 @@ import kotlin.math.roundToInt
  */
 @ExperimentalMaterial3Api
 @Composable
-fun ExposedDropdownMenuBox(
+expect fun ExposedDropdownMenuBox(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable ExposedDropdownMenuBoxScope.() -> Unit,
-) {
-    val windowBoundsCalculator = platformWindowBoundsCalculator()
-    val density = LocalDensity.current
-
-    val verticalMargin = with(density) { MenuVerticalMargin.roundToPx() }
-
-    var anchorCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
-    var anchorWidth by remember { mutableIntStateOf(0) }
-    var menuMaxHeight by remember { mutableIntStateOf(0) }
-
-    val focusRequester = remember { FocusRequester() }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val expandedDescription = getString(Strings.MenuExpanded)
-    val collapsedDescription = getString(Strings.MenuCollapsed)
-    val toggleDescription = getString(Strings.ToggleDropdownMenu)
-    val anchorTypeState = remember {
-        mutableStateOf(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-    }
-
-    val scope =
-        remember(expanded, onExpandedChange, windowBoundsCalculator, density) {
-            object : ExposedDropdownMenuBoxScopeImpl() {
-                override fun Modifier.menuAnchor(
-                    type: ExposedDropdownMenuAnchorType,
-                    enabled: Boolean
-                ): Modifier =
-                    this.focusRequester(focusRequester)
-                        .then(
-                            ExposedDropdownMenuAnchorElement {
-                                if (type.hasGreaterOrEqualPriorityThan(anchorTypeState.value)) {
-                                    anchorTypeState.value = type
-                                }
-                            }
-                        )
-                        .then(
-                            if (!enabled) Modifier
-                            else
-                                Modifier.expandable(
-                                    expanded = expanded,
-                                    onExpandedChange = {
-                                        anchorTypeState.value = type
-                                        onExpandedChange(!expanded)
-                                    },
-                                    anchorType = type,
-                                    expandedDescription = expandedDescription,
-                                    collapsedDescription = collapsedDescription,
-                                    toggleDescription = toggleDescription,
-                                    keyboardController = keyboardController,
-                                )
-                        )
-
-                override val anchorType: ExposedDropdownMenuAnchorType
-                    get() = anchorTypeState.value
-
-                override fun Modifier.exposedDropdownSize(matchAnchorWidth: Boolean): Modifier =
-                    layout { measurable, constraints ->
-                        val menuWidth = constraints.constrainWidth(anchorWidth)
-                        val menuConstraints =
-                            constraints.copy(
-                                maxHeight = constraints.constrainHeight(menuMaxHeight),
-                                minWidth =
-                                    if (matchAnchorWidth) menuWidth else constraints.minWidth,
-                                maxWidth =
-                                    if (matchAnchorWidth) menuWidth else constraints.maxWidth,
-                            )
-                        val placeable = measurable.measure(menuConstraints)
-                        layout(placeable.width, placeable.height) { placeable.place(0, 0) }
-                    }
-            }
-        }
-
-    Box(
-        modifier.onGloballyPositioned {
-            anchorCoordinates = it
-            anchorWidth = it.size.width
-            menuMaxHeight =
-                calculateMaxHeight(
-                    windowBounds = windowBoundsCalculator.getVisibleWindowBounds(),
-                    anchorBounds = anchorCoordinates.getAnchorBounds(),
-                    verticalMargin = verticalMargin,
-                )
-        }
-    ) {
-        scope.content()
-    }
-
-    if (expanded) {
-        OnPlatformWindowBoundsChange {
-            menuMaxHeight =
-                calculateMaxHeight(
-                    windowBounds = windowBoundsCalculator.getVisibleWindowBounds(),
-                    anchorBounds = anchorCoordinates.getAnchorBounds(),
-                    verticalMargin = verticalMargin,
-                )
-        }
-    }
-
-    SideEffect { if (expanded) focusRequester.requestFocus() }
-
-    // Back events are handled in the Popup layer if the menu is focusable.
-    // If it's not focusable, we handle them here.
-    BackHandler(enabled = expanded) { onExpandedChange(false) }
-}
+)
 
 /** Scope for [ExposedDropdownMenuBox]. */
 @ExperimentalMaterial3Api
 sealed class ExposedDropdownMenuBoxScope {
     /**
      * Modifier which should be applied to an element inside the [ExposedDropdownMenuBoxScope],
-     * typically a text field or an icon within the text field. It's responsible for requesting
-     * focus, and if [enabled], expanding/collapsing the menu on click and applying semantics.
+     * typically a text field or an icon within the text field. It's responsible for expanding and
+     * collapsing the menu on click, applying semantics to the component, and requesting focus.
      *
-     * @param type the type of element that is anchoring the menu. See
-     *   [ExposedDropdownMenuAnchorType].
-     * @param enabled whether controlling the menu via this anchor is enabled. When `false`, the
-     *   component will not expand or collapse the menu in response to user input, and menu
-     *   semantics will be invisible to accessibility services. Note that this value only controls
-     *   interactions with the menu. It does not affect the enabled state of other kinds of
-     *   interactions, such as [TextField]'s `enabled` parameter.
+     * @param type the type of element that is anchoring the menu. See [MenuAnchorType].
+     * @param enabled controls the enabled state. When `false`, the component will not expand or
+     *   collapse the menu in response to user input, and menu semantics will be invisible to
+     *   accessibility services. Note that this value only controls interactions with the menu. It
+     *   does not affect the enabled state of other kinds of interactions, such as [TextField]'s
+     *   `enabled` parameter.
      */
-    abstract fun Modifier.menuAnchor(
-        type: ExposedDropdownMenuAnchorType,
-        enabled: Boolean = true
-    ): Modifier
+    abstract fun Modifier.menuAnchor(type: MenuAnchorType, enabled: Boolean = true): Modifier
 
     /**
      * Modifier which should be applied to a menu placed inside the [ExposedDropdownMenuBoxScope].
@@ -266,12 +128,12 @@ sealed class ExposedDropdownMenuBoxScope {
      * [ExposedDropdownMenu] applies this modifier automatically, so this is only needed when using
      * custom menu components.
      *
-     * @param matchAnchorWidth whether the menu's width should be forcefully constrained to match
+     * @param matchTextFieldWidth whether the menu's width should be forcefully constrained to match
      *   the width of the text field to which it's attached.
      */
-    abstract fun Modifier.exposedDropdownSize(matchAnchorWidth: Boolean = true): Modifier
+    abstract fun Modifier.exposedDropdownSize(matchTextFieldWidth: Boolean = true): Modifier
 
-    internal abstract val anchorType: ExposedDropdownMenuAnchorType
+    internal abstract val anchorType: MenuAnchorType
 
     /**
      * Popup which contains content for Exposed Dropdown Menu. Should be used inside the content of
@@ -282,7 +144,7 @@ sealed class ExposedDropdownMenuBoxScope {
      *   outside the menu's bounds
      * @param modifier the [Modifier] to be applied to this menu
      * @param scrollState a [ScrollState] used by the menu's content for items vertical scrolling
-     * @param matchAnchorWidth whether the menu's width should be forcefully constrained to match
+     * @param matchTextFieldWidth whether the menu's width should be forcefully constrained to match
      *   the width of the text field to which it's attached.
      * @param shape the shape of the menu
      * @param containerColor the container color of the menu
@@ -300,7 +162,7 @@ sealed class ExposedDropdownMenuBoxScope {
         onDismissRequest: () -> Unit,
         modifier: Modifier = Modifier,
         scrollState: ScrollState = rememberScrollState(),
-        matchAnchorWidth: Boolean = true,
+        matchTextFieldWidth: Boolean = true,
         shape: Shape = MenuDefaults.shape,
         containerColor: Color = MenuDefaults.containerColor,
         tonalElevation: Dp = MenuDefaults.TonalElevation,
@@ -308,68 +170,33 @@ sealed class ExposedDropdownMenuBoxScope {
         border: BorderStroke? = null,
         content: @Composable ColumnScope.() -> Unit,
     ) {
-        // Workaround for b/326394521. We create a state that's read in `calculatePosition`.
-        // Then trigger a state change in `OnPlatformWindowBoundsChange` to force recalculation.
-        val keyboardSignalState = remember { mutableStateOf(Unit, neverEqualPolicy()) }
-        val density = LocalDensity.current
-        val topWindowInsets = WindowInsets.statusBars.getTop(density)
-
-        if (expanded) {
-            OnPlatformWindowBoundsChange { keyboardSignalState.value = Unit }
-        }
-
-        // TODO(b/326064777): use DropdownMenu when it supports custom PositionProvider
-        val expandedState = remember { MutableTransitionState(false) }
-        expandedState.targetState = expanded
-
-        if (expandedState.currentState || expandedState.targetState) {
-            val transformOriginState = remember { mutableStateOf(TransformOrigin.Center) }
-            val popupPositionProvider =
-                remember(density, topWindowInsets) {
-                    ExposedDropdownMenuPositionProvider(
-                        density = density,
-                        topWindowInsets = topWindowInsets,
-                        keyboardSignalState = keyboardSignalState,
-                    ) { anchorBounds, menuBounds ->
-                        transformOriginState.value =
-                            calculateTransformOrigin(anchorBounds, menuBounds)
-                    }
-                }
-
-            Popup(
-                onDismissRequest = onDismissRequest,
-                popupPositionProvider = popupPositionProvider,
-                properties = popupPropertiesForAnchorType(anchorType),
-            ) {
-                DropdownMenuContent(
-                    expandedState = expandedState,
-                    transformOriginState = transformOriginState,
-                    scrollState = scrollState,
-                    shape = shape,
-                    containerColor = containerColor,
-                    tonalElevation = tonalElevation,
-                    shadowElevation = shadowElevation,
-                    border = border,
-                    modifier = modifier.exposedDropdownSize(matchAnchorWidth),
-                    content = content,
-                )
-            }
-        }
+        ExposedDropdownMenuDefaultImpl(
+            expanded = expanded,
+            onDismissRequest = onDismissRequest,
+            modifier = modifier,
+            scrollState = scrollState,
+            matchTextFieldWidth = matchTextFieldWidth,
+            shape = shape,
+            containerColor = containerColor,
+            tonalElevation = tonalElevation,
+            shadowElevation = shadowElevation,
+            border = border,
+            content = content
+        )
     }
 
     @Deprecated(
         level = DeprecationLevel.WARNING,
-        message = "Use overload that takes ExposedDropdownMenuAnchorType and enabled parameters",
+        message = "Use overload that takes MenuAnchorType and enabled parameters",
         replaceWith = ReplaceWith("menuAnchor(type, enabled)")
     )
-    fun Modifier.menuAnchor(): Modifier =
-        menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+    fun Modifier.menuAnchor(): Modifier = menuAnchor(MenuAnchorType.PrimaryNotEditable)
 
     @Deprecated(
         level = DeprecationLevel.WARNING,
         message =
-            "The `focusable` parameter is unused. Pass the proper ExposedDropdownMenuAnchorType " +
-                "to Modifier.menuAnchor instead, which will handle focusability automatically.",
+        "The `focusable` parameter is unused. Pass the proper MenuAnchorType to " +
+            "Modifier.menuAnchor instead, which will handle focusability automatically.",
     )
     @Suppress("DeprecatedCallableAddReplaceWith", "UNUSED_PARAMETER")
     @Composable
@@ -392,7 +219,7 @@ sealed class ExposedDropdownMenuBoxScope {
             onDismissRequest = onDismissRequest,
             modifier = modifier,
             scrollState = scrollState,
-            matchAnchorWidth = matchTextFieldWidth,
+            matchTextFieldWidth = matchTextFieldWidth,
             shape = shape,
             containerColor = containerColor,
             tonalElevation = tonalElevation,
@@ -401,12 +228,11 @@ sealed class ExposedDropdownMenuBoxScope {
             content = content,
         )
 
-    @Suppress("DEPRECATION")
     @Deprecated(
         level = DeprecationLevel.HIDDEN,
         message =
-            "Maintained for binary compatibility. " +
-                "Use overload with customization options parameters."
+        "Maintained for binary compatibility. " +
+            "Use overload with customization options parameters."
     )
     @Composable
     fun ExposedDropdownMenu(
@@ -431,20 +257,35 @@ sealed class ExposedDropdownMenuBoxScope {
         )
 }
 
+@Composable
+internal expect fun ExposedDropdownMenuBoxScope.ExposedDropdownMenuDefaultImpl(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier,
+    scrollState: ScrollState,
+    matchTextFieldWidth: Boolean,
+    shape: Shape,
+    containerColor: Color,
+    tonalElevation: Dp,
+    shadowElevation: Dp,
+    border: BorderStroke?,
+    content: @Composable ColumnScope.() -> Unit,
+)
+
 // Sealed classes don't allow dynamic anonymous subclasses.
 @OptIn(ExperimentalMaterial3Api::class)
-private abstract class ExposedDropdownMenuBoxScopeImpl : ExposedDropdownMenuBoxScope()
+internal abstract class ExposedDropdownMenuBoxScopeImpl : ExposedDropdownMenuBoxScope()
 
 /** The type of element that can serve as a dropdown menu anchor. */
 @JvmInline
-value class ExposedDropdownMenuAnchorType private constructor(private val name: String) {
+value class MenuAnchorType private constructor(private val name: String) {
     companion object {
         /**
          * A non-editable primary anchor of the dropdown menu, such as a read-only text field.
          *
          * An anchor of this type will open the menu with focus.
          */
-        val PrimaryNotEditable = ExposedDropdownMenuAnchorType("PrimaryNotEditable")
+        val PrimaryNotEditable = MenuAnchorType("PrimaryNotEditable")
 
         /**
          * An editable primary anchor of the dropdown menu, such as a text field that allows user
@@ -453,7 +294,7 @@ value class ExposedDropdownMenuAnchorType private constructor(private val name: 
          * An anchor of this type will open the menu without focus in order to preserve focus on the
          * soft keyboard (IME).
          */
-        val PrimaryEditable = ExposedDropdownMenuAnchorType("PrimaryEditable")
+        val PrimaryEditable = MenuAnchorType("PrimaryEditable")
 
         /**
          * A secondary anchor of the dropdown menu that lives alongside an editable primary anchor,
@@ -463,28 +304,11 @@ value class ExposedDropdownMenuAnchorType private constructor(private val name: 
          * focus. Otherwise, the menu is opened without focus in order to preserve focus on the soft
          * keyboard (IME).
          */
-        val SecondaryEditable = ExposedDropdownMenuAnchorType("SecondaryEditable")
+        val SecondaryEditable = MenuAnchorType("SecondaryEditable")
     }
 
     override fun toString(): String = name
 }
-
-private fun ExposedDropdownMenuAnchorType.hasGreaterOrEqualPriorityThan(
-    that: ExposedDropdownMenuAnchorType
-): Boolean =
-    when (this) {
-        ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-        ExposedDropdownMenuAnchorType.PrimaryEditable -> true
-        ExposedDropdownMenuAnchorType.SecondaryEditable ->
-            that == ExposedDropdownMenuAnchorType.SecondaryEditable
-        else -> false
-    }
-
-@Deprecated(
-    message = "Renamed to ExposedDropdownMenuAnchorType",
-    replaceWith = ReplaceWith("ExposedDropdownMenuAnchorType"),
-)
-typealias MenuAnchorType = ExposedDropdownMenuAnchorType
 
 /** Contains default values used by Exposed Dropdown Menu. */
 @ExperimentalMaterial3Api
@@ -1152,16 +976,16 @@ object ExposedDropdownMenuDefaults {
             focusedPrefixColor = OutlinedAutocompleteTokens.FieldSupportingTextColor.value,
             unfocusedPrefixColor = OutlinedAutocompleteTokens.FieldSupportingTextColor.value,
             disabledPrefixColor =
-                OutlinedAutocompleteTokens.FieldDisabledSupportingTextColor.value.copy(
-                    alpha = OutlinedAutocompleteTokens.FieldDisabledSupportingTextOpacity
-                ),
+            OutlinedAutocompleteTokens.FieldDisabledSupportingTextColor.value.copy(
+                alpha = OutlinedAutocompleteTokens.FieldDisabledSupportingTextOpacity
+            ),
             errorPrefixColor = OutlinedAutocompleteTokens.FieldSupportingTextColor.value,
             focusedSuffixColor = OutlinedAutocompleteTokens.FieldSupportingTextColor.value,
             unfocusedSuffixColor = OutlinedAutocompleteTokens.FieldSupportingTextColor.value,
             disabledSuffixColor =
-                OutlinedAutocompleteTokens.FieldDisabledSupportingTextColor.value.copy(
-                    alpha = OutlinedAutocompleteTokens.FieldDisabledSupportingTextOpacity
-                ),
+            OutlinedAutocompleteTokens.FieldDisabledSupportingTextColor.value.copy(
+                alpha = OutlinedAutocompleteTokens.FieldDisabledSupportingTextOpacity
+            ),
             errorSuffixColor = OutlinedAutocompleteTokens.FieldSupportingTextColor.value,
         )
 
@@ -1252,16 +1076,16 @@ object ExposedDropdownMenuDefaults {
             focusedPrefixColor = OutlinedAutocompleteTokens.FieldSupportingTextColor.value,
             unfocusedPrefixColor = OutlinedAutocompleteTokens.FieldSupportingTextColor.value,
             disabledPrefixColor =
-                OutlinedAutocompleteTokens.FieldDisabledSupportingTextColor.value.copy(
-                    alpha = OutlinedAutocompleteTokens.FieldDisabledSupportingTextOpacity
-                ),
+            OutlinedAutocompleteTokens.FieldDisabledSupportingTextColor.value.copy(
+                alpha = OutlinedAutocompleteTokens.FieldDisabledSupportingTextOpacity
+            ),
             errorPrefixColor = OutlinedAutocompleteTokens.FieldSupportingTextColor.value,
             focusedSuffixColor = OutlinedAutocompleteTokens.FieldSupportingTextColor.value,
             unfocusedSuffixColor = OutlinedAutocompleteTokens.FieldSupportingTextColor.value,
             disabledSuffixColor =
-                OutlinedAutocompleteTokens.FieldDisabledSupportingTextColor.value.copy(
-                    alpha = OutlinedAutocompleteTokens.FieldDisabledSupportingTextOpacity
-                ),
+            OutlinedAutocompleteTokens.FieldDisabledSupportingTextColor.value.copy(
+                alpha = OutlinedAutocompleteTokens.FieldDisabledSupportingTextOpacity
+            ),
             errorSuffixColor = OutlinedAutocompleteTokens.FieldSupportingTextColor.value,
         )
 }
@@ -1324,7 +1148,7 @@ internal class ExposedDropdownMenuPositionProvider(
                 )
             if (
                 index == xCandidates.lastIndex ||
-                    (xCandidate >= 0 && xCandidate + popupContentSize.width <= windowSize.width)
+                (xCandidate >= 0 && xCandidate + popupContentSize.width <= windowSize.width)
             ) {
                 x = xCandidate
                 break
@@ -1351,7 +1175,7 @@ internal class ExposedDropdownMenuPositionProvider(
                 )
             if (
                 index == yCandidates.lastIndex ||
-                    (yCandidate >= 0 && yCandidate + popupContentSize.height <= windowSize.height)
+                (yCandidate >= 0 && yCandidate + popupContentSize.height <= windowSize.height)
             ) {
                 y = yCandidate
                 break
@@ -1367,55 +1191,32 @@ internal class ExposedDropdownMenuPositionProvider(
     }
 }
 
-private data class ExposedDropdownMenuAnchorElement(
-    val updateStateOnAttach: () -> Unit,
-) : ModifierNodeElement<ExposedDropdownMenuAnchorNode>() {
-    override fun create() = ExposedDropdownMenuAnchorNode(updateStateOnAttach)
-
-    override fun update(node: ExposedDropdownMenuAnchorNode) {
-        node.updateStateOnAttach = updateStateOnAttach
-    }
-
-    override fun InspectorInfo.inspectableProperties() {
-        name = "exposedDropdownMenuAnchorType"
-        properties["updateStateOnAttach"] = updateStateOnAttach
-    }
-}
-
-private class ExposedDropdownMenuAnchorNode(
-    var updateStateOnAttach: () -> Unit,
-) : Modifier.Node() {
-    override fun onAttach() {
-        updateStateOnAttach()
-    }
-}
-
-private fun Modifier.expandable(
+internal fun Modifier.expandable(
     expanded: Boolean,
     onExpandedChange: () -> Unit,
-    anchorType: ExposedDropdownMenuAnchorType,
+    anchorType: MenuAnchorType,
     expandedDescription: String,
     collapsedDescription: String,
     toggleDescription: String,
     keyboardController: SoftwareKeyboardController?,
 ) =
     pointerInput(onExpandedChange) {
-            awaitEachGesture {
-                // Modifier.clickable doesn't work for text fields, so we use Modifier.pointerInput
-                // in the Initial pass to observe events before the text field consumes them
-                // in the Main pass.
-                val downEvent = awaitFirstDown(pass = PointerEventPass.Initial)
-                if (anchorType == ExposedDropdownMenuAnchorType.SecondaryEditable) {
-                    downEvent.consume()
-                }
-                val upEvent = waitForUpOrCancellation(pass = PointerEventPass.Initial)
-                if (upEvent != null) {
-                    onExpandedChange()
-                }
+        awaitEachGesture {
+            // Modifier.clickable doesn't work for text fields, so we use Modifier.pointerInput
+            // in the Initial pass to observe events before the text field consumes them
+            // in the Main pass.
+            val downEvent = awaitFirstDown(pass = PointerEventPass.Initial)
+            if (anchorType == MenuAnchorType.SecondaryEditable) {
+                downEvent.consume()
+            }
+            val upEvent = waitForUpOrCancellation(pass = PointerEventPass.Initial)
+            if (upEvent != null) {
+                onExpandedChange()
             }
         }
+    }
         .semantics {
-            if (anchorType == ExposedDropdownMenuAnchorType.SecondaryEditable) {
+            if (anchorType == MenuAnchorType.SecondaryEditable) {
                 role = Role.Button
                 stateDescription = if (expanded) expandedDescription else collapsedDescription
                 contentDescription = toggleDescription
@@ -1424,55 +1225,11 @@ private fun Modifier.expandable(
             }
             onClick {
                 onExpandedChange()
-                if (anchorType == ExposedDropdownMenuAnchorType.PrimaryEditable) {
+                if (anchorType == MenuAnchorType.PrimaryEditable) {
                     keyboardController?.show()
                 }
                 true
             }
         }
-
-private fun calculateMaxHeight(
-    windowBounds: IntRect,
-    anchorBounds: Rect?,
-    verticalMargin: Int,
-): Int {
-    anchorBounds ?: return 0
-
-    val marginedWindowTop = windowBounds.top + verticalMargin
-    val marginedWindowBottom = windowBounds.bottom - verticalMargin
-    val availableHeight =
-        if (anchorBounds.top > windowBounds.bottom || anchorBounds.bottom < windowBounds.top) {
-            marginedWindowBottom - marginedWindowTop
-        } else {
-            val heightAbove = anchorBounds.top - marginedWindowTop
-            val heightBelow = marginedWindowBottom - anchorBounds.bottom
-            max(heightAbove, heightBelow).roundToInt()
-        }
-
-    return max(availableHeight, 0)
-}
-
-// Don't use `boundsInWindow()` because it can report 0 when the window is animating/resizing
-private fun LayoutCoordinates?.getAnchorBounds(): Rect =
-    if (this == null || !this.isAttached) Rect.Zero else Rect(positionInWindow(), size.toSize())
-
-internal expect class WindowBoundsCalculator {
-    fun getVisibleWindowBounds(): IntRect
-}
-
-@Composable internal expect fun platformWindowBoundsCalculator(): WindowBoundsCalculator
-
-@Composable internal expect fun OnPlatformWindowBoundsChange(block: () -> Unit)
-
-/**
- * Creates a [PopupProperties] used for [ExposedDropdownMenuBoxScope.ExposedDropdownMenu].
- *
- * @param anchorType the type of element that is anchoring the menu. See
- *   [ExposedDropdownMenuAnchorType].
- */
-@Composable
-internal expect fun popupPropertiesForAnchorType(
-    anchorType: ExposedDropdownMenuAnchorType
-): PopupProperties
 
 private val ExposedDropdownMenuItemHorizontalPadding = 16.dp

@@ -29,7 +29,6 @@ import androidx.compose.ui.node.LayoutModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.node.currentValueOf
 import androidx.compose.ui.platform.InspectorInfo
-import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.coerceAtLeast
@@ -41,22 +40,15 @@ import kotlin.math.roundToInt
  * Reserves at least 48.dp in size to disambiguate touch interactions if the element would measure
  * smaller.
  *
- * https://m3.material.io/foundations/designing/structure#dab862b1-e042-4c40-b680-b484b9f077f6
+ * https://m3.material.io/foundations/accessible-design/accessibility-basics#28032e45-c598-450c-b355-f9fe737b1cd8
  *
  * This uses the Material recommended minimum size of 48.dp x 48.dp, which may not the same as the
  * system enforced minimum size. The minimum clickable / touch target size (48.dp by default) is
- * controlled by the system via [ViewConfiguration] and automatically expanded at the touch input
+ * controlled by the system via ViewConfiguration` and automatically expanded at the touch input
  * layer.
  *
  * This modifier is not needed for touch target expansion to happen. It only affects layout, to make
  * sure there is adequate space for touch target expansion.
- *
- * Because layout constraints are affected by modifier order, for this modifier to take effect, it
- * must come before any size modifiers on the element that might limit its constraints.
- *
- * @sample androidx.compose.material3.samples.MinimumInteractiveComponentSizeSample
- * @sample androidx.compose.material3.samples.MinimumInteractiveComponentSizeCheckboxRowSample
- * @see LocalMinimumInteractiveComponentSize
  */
 @Stable
 fun Modifier.minimumInteractiveComponentSize(): Modifier = this then MinimumInteractiveModifier
@@ -126,7 +118,9 @@ internal class MinimumInteractiveModifierNode :
 @get:ExperimentalMaterial3Api
 @ExperimentalMaterial3Api
 @Deprecated(
-    message = "Use LocalMinimumInteractiveComponentSize with 0.dp to turn off enforcement instead.",
+    message =
+        "Use LocalMinimumInteractiveComponentSize with Dp.Unspecified to turn off " +
+            "enforcement instead.",
     replaceWith = ReplaceWith("LocalMinimumInteractiveComponentSize"),
     level = DeprecationLevel.WARNING
 )
@@ -138,10 +132,10 @@ val LocalMinimumInteractiveComponentEnforcement: ProvidableCompositionLocal<Bool
 /**
  * CompositionLocal that configures the minimum touch target size for Material components (such as
  * [Button]) to ensure they are accessible. If a component has a visual size that is lower than the
- * minimum touch target size, extra space outside the component will be included. If set to 0.dp,
- * there will be no extra space, and so it is possible that if the component is placed near the edge
- * of a layout / near to another component without any padding, there will not be enough space for
- * an accessible touch target.
+ * minimum touch target size, extra space outside the component will be included. If set to
+ * [Dp.Unspecified] there will be no extra space, and so it is possible that if the component is
+ * placed near the edge of a layout / near to another component without any padding, there will not
+ * be enough space for an accessible touch target.
  */
 val LocalMinimumInteractiveComponentSize: ProvidableCompositionLocal<Dp> =
     staticCompositionLocalOf {

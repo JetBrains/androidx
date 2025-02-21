@@ -41,7 +41,7 @@ import kotlinx.coroutines.flow.collectLatest
 
 /**
  * Label component that will append a [label] to [content]. The positioning logic uses
- * [TooltipDefaults.rememberTooltipPositionProvider].
+ * [TooltipDefaults.rememberPlainTooltipPositionProvider].
  *
  * Label appended to thumbs of Slider:
  *
@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.collectLatest
  * Label appended to thumbs of RangeSlider:
  *
  * @sample androidx.compose.material3.samples.RangeSliderWithCustomComponents
+ *
  * @param label composable that will be appended to [content]
  * @param modifier [Modifier] that will be applied to [content]
  * @param interactionSource the [MutableInteractionSource] representing the stream of [Interaction]s
@@ -71,7 +72,7 @@ fun Label(
     @Suppress("NAME_SHADOWING")
     val interactionSource = interactionSource ?: remember { MutableInteractionSource() }
     // Has the same positioning logic as PlainTooltips
-    val positionProvider = TooltipDefaults.rememberTooltipPositionProvider()
+    val positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider()
     val state =
         if (isPersistent) remember { LabelStateImpl() }
         else rememberBasicTooltipState(mutatorMutex = MutatorMutex())
