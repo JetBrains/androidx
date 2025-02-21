@@ -16,8 +16,14 @@
 
 package androidx.compose.ui
 
+import kotlinx.browser.window
+
 internal actual fun areObjectsOfSameType(a: Any, b: Any): Boolean {
     return (js(
         "Object.getPrototypeOf(a).constructor == Object.getPrototypeOf(b).constructor"
     )) as Boolean
+}
+
+internal actual fun currentTimeMillis(): Long {
+    return window.performance.now().toLong()
 }
