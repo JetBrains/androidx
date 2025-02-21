@@ -72,6 +72,7 @@ import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
+import kotlinx.test.IgnoreJsTarget
 
 @Composable fun Container(content: @Composable () -> Unit) = content()
 
@@ -2564,7 +2565,7 @@ class CompositionTests {
         assertArrayEquals(listOf(observed), abandonedObjects)
     }
 
-    @Ignore // TODO: Fails on JS https://youtrack.jetbrains.com/issue/CMP-7453
+    @IgnoreJsTarget // The test is properly implemented in CompositionTestWeb
     @Test
     fun testRememberObserver_Abandon_Recompose() {
         val abandonedObjects = mutableListOf<RememberObserver>()

@@ -176,10 +176,8 @@ if(AndroidXComposePlugin.isMultiplatformEnabled(project)) {
             }
 
             desktopTest.dependsOn(jbTest)
-            jsTest.dependsOn(jbTest)
             nativeTest.dependsOn(jbTest)
             jbTest.dependsOn(commonTest)
-            wasmJsTest.dependsOn(jbTest)
 
             nativeMain {
                 dependsOn(nonJvmMain)
@@ -272,18 +270,24 @@ if(AndroidXComposePlugin.isMultiplatformEnabled(project)) {
             desktopTest {
                 dependsOn(jvmTest)
             }
-            jsTest {
+            webTest {
+                dependsOn(jbTest)
                 dependsOn(nonEmulatorCommonTest)
+            }
+            jsTest {
+                dependsOn(webTest)
                 dependencies {
                     implementation(libs.kotlinTestJs)
                 }
             }
             wasmJsTest {
-                dependsOn(nonEmulatorCommonTest)
+                dependsOn(webTest)
                 dependencies {
                     implementation(libs.create("kotlinTestWasm"))
                 }
             }
+            wasmJsTest.dependsOn(webTest)
+            jsTest.dependsOn(webTest)
             nativeTest {
                 dependsOn(nonEmulatorCommonTest)
                 kotlin.srcDir("src/nativeTest/kotlin")
