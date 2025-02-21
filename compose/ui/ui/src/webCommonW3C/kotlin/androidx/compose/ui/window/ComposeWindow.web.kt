@@ -22,6 +22,7 @@ import androidx.compose.runtime.InternalComposeApi
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.LocalSystemTheme
+import androidx.compose.ui.SessionMutex
 import androidx.compose.ui.draganddrop.WebDragAndDropManager
 import androidx.compose.ui.events.EventTargetListener
 import androidx.compose.ui.geometry.Offset
@@ -43,6 +44,7 @@ import androidx.compose.ui.platform.DefaultInputModeManager
 import androidx.compose.ui.platform.LocalInternalViewModelStoreOwner
 import androidx.compose.ui.platform.PlatformContext
 import androidx.compose.ui.platform.PlatformDragAndDropManager
+import androidx.compose.ui.platform.PlatformTextInputSessionScope
 import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.platform.WebTextInputService
 import androidx.compose.ui.platform.WindowInfoImpl
@@ -214,6 +216,17 @@ internal class ComposeWindow(
                 canvas.style.cursor = pointerIcon.id
             }
         }
+
+        private val textInputSessionMutex = SessionMutex<WebTextInputSession>()
+
+        override suspend fun textInputSession(
+            session: suspend PlatformTextInputSessionScope.() -> Nothing
+        ): Nothing = textInputSessionMutex.withSessionCancellingPrevious(
+            sessionInitializer = {
+                WebTextInputSession(it, textInputService)
+            },
+            session = session
+        )
     }
 
     private val skiaLayer: SkiaLayer = SkiaLayer().apply {
