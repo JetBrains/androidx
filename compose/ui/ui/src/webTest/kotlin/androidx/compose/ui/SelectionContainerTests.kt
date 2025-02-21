@@ -46,8 +46,8 @@ import org.w3c.dom.events.MouseEventInit
 class SelectionContainerTests : OnCanvasTests {
 
     private fun HTMLCanvasElement.doClick() {
-        dispatchEvent(MouseEvent("mousedown", MouseEventInit(5, 5, 5, 5, buttons = 1, button = 1)))
-        dispatchEvent(MouseEvent("mouseup", MouseEventInit(5, 5, 5, 5, buttons = 0, button = 1)))
+        dispatchEvent(MouseEvent("mousedown", MouseEventInit(clientX = 8, clientY = 8, buttons = 1, button = 1)))
+        dispatchEvent(MouseEvent("mouseup", MouseEventInit(clientX = 8, clientY = 8, buttons = 0, button = 1)))
     }
 
     @Test

@@ -183,6 +183,14 @@ if(AndroidXComposePlugin.isMultiplatformEnabled(project)) {
                 dependsOn(skikoTest)
             }
 
+            jsTest {
+                dependsOn(skikoTest)
+            }
+
+            wasmJsTest {
+                dependsOn(skikoTest)
+            }
+
             configureEach {
                 languageSettings.optIn("androidx.compose.ui.ExperimentalComposeUiApi")
                 languageSettings.optIn("androidx.compose.ui.InternalComposeUiApi")

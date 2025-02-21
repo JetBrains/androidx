@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.InspectableValue
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import kotlin.test.Test
+import kotlinx.test.IgnoreJsTarget
 
 class CornerSizeTest {
 
@@ -30,6 +31,7 @@ class CornerSizeTest {
     private val size = Size(150.0f, 300.0f)
 
     @Test
+    @IgnoreJsTarget // due to float formatting in js: 24.0f -> 24
     fun pxCorners() {
         val corner = CornerSize(24.0f)
         assertThat(corner.toPx(size, density)).isEqualTo(24.0f)
@@ -44,6 +46,7 @@ class CornerSizeTest {
     }
 
     @Test
+    @IgnoreJsTarget // due to float formatting in js: 15.0% -> 15%
     fun intPercentCorners() {
         val corner = CornerSize(15)
         assertThat(corner.toPx(size, density)).isEqualTo(22.5f)

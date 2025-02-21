@@ -38,7 +38,7 @@ dependencies {
 }
 
 val resourcesDir = "$buildDir/resources"
-val skikoWasm by configurations.creating
+val skikoWasm = configurations.findByName("skikoWasm") ?: configurations.create("skikoWasm")
 
 dependencies {
     skikoWasm(libs.skikoWasm)

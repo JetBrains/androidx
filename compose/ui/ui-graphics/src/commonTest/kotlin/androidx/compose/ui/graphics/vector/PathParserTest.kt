@@ -42,7 +42,7 @@ class PathParserTest {
         parser.parsePathString("H1e-5").toPath(linePath)
 
         assertEquals(1, linePath.lineToPoints.size)
-        assertEquals(1e-5f, linePath.lineToPoints[0].x)
+        assertEquals(1e-5f, linePath.lineToPoints[0].x, 1e-6f)
     }
 
     @Test

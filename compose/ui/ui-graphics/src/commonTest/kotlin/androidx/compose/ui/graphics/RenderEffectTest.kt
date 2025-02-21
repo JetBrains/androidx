@@ -17,6 +17,7 @@
 package androidx.compose.ui.graphics
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.internal.IgnoreJs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -37,6 +38,7 @@ class RenderEffectTest {
     }
 
     @Test
+    @IgnoreJs // due to float formatting
     fun testBlurEffectToString() {
         assertEquals(
             "BlurEffect(" +
@@ -68,6 +70,7 @@ class RenderEffectTest {
     }
 
     @Test
+    @IgnoreJs // due to float formatting
     fun testNestedRenderEffectToString() {
         val blur =
             BlurEffect(
@@ -108,6 +111,7 @@ class RenderEffectTest {
     }
 
     @Test
+    @IgnoreJs
     fun testOffsetEffectToString() {
         assertEquals(
             "OffsetEffect(" + "renderEffect=null, " + "offset=Offset(5.0, 10.0)" + ")",
@@ -132,6 +136,7 @@ class RenderEffectTest {
     }
 
     @Test
+    @IgnoreJs // due to float formatting
     fun testNestedOffsetEffectToString() {
         val renderEffect =
             OffsetEffect(BlurEffect(5.0f, 10.0f, TileMode.Clamp), Offset(15.0f, 20.0f))

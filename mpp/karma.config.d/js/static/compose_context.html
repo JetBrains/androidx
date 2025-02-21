@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<!--
+This is the execution context.
+Loaded within the iframe.
+Reloaded before every execution run.
+-->
+<html>
+<head>
+  <title></title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <style>
+    body { margin: 0; padding: 0; overflow: hidden; width: 100%; height: 100%; }
+
+    canvas {
+      outline: 0
+    }
+
+    #canvasApp {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <!-- The scripts need to be in the body DOM element, as some test running frameworks need the body
+       to have already been created so they can insert their magic into it. For example, if loaded
+       before body, Angular Scenario test framework fails to find the body and crashes and burns in
+       an epic manner. -->
+  <script src="context.js"></script>
+  <script type="text/javascript">
+    // Configure our Karma and set up bindings
+    %CLIENT_CONFIG%
+    window.__karma__.setupContext(window);
+    // All served files with the latest timestamps
+    %MAPPINGS%
+  </script>
+  <script type="text/javascript">
+
+    console.log(window.__karma__);
+    window.__karma__.loaded = function() {
+      console.log("window.__karma__.loaded");
+    };
+
+    function loadWasmModule() {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (typeof onWasmReady === 'function') {
+            onWasmReady(() => { resolve('skiko.wasm is ready') });
+          } else {
+            loadWasmModule().then(resolve);
+          }
+        }, 100);
+      });
+    }
+
+    // Load the wasm module and start Karma after it's loaded
+    loadWasmModule()
+            .then(() => {
+              window.__karma__.start();
+            })
+            .catch(error => {
+              console.error('Failed to load wasm module:', error);
+              window.__karma__.error(error);
+            });
+  </script>
+  <!-- Dynamically replaced with <script> tags -->
+  %SCRIPTS%
+</body>
+</html>

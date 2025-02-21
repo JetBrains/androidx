@@ -18,23 +18,61 @@ package androidx.compose.ui.window
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.PointerMatcher
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.onClick
+import androidx.compose.material.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.OnCanvasTests
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlinx.browser.document
+import kotlinx.browser.window
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable.isActive
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.events.MouseEventInit
 
 class MouseEventsTest : OnCanvasTests {
+
+    @Test
+    fun createMouseEvent() = runTest {
+        createComposeWindow {  }
+
+        var offsetX = Double.MIN_VALUE
+        var offsetY = Double.MIN_VALUE
+
+        getCanvas().addEventListener("mouseenter", { event ->
+            event as MouseEvent
+            offsetX = event.offsetX
+            offsetY = event.offsetY
+        })
+
+        dispatchEvents(MouseEvent("mouseenter", MouseEventInit(100, 100)))
+
+        // We see that screenX/screenY are ignored
+        assertEquals(0.0, offsetX)
+        assertEquals(0.0, offsetY)
+
+
+        dispatchEvents(MouseEvent("mouseenter", MouseEventInit(clientX = 100, clientY = 100)))
+
+        // We see that clientX/clientY are not ignored
+        assertEquals(100.0, offsetX)
+        assertEquals(100.0, offsetY)
+    }
 
     @Test
     fun testPointerEvents() = runTest {
@@ -55,9 +93,9 @@ class MouseEventsTest : OnCanvasTests {
         }
 
         dispatchEvents(
-            MouseEvent("mouseenter", MouseEventInit(100, 100)),
-            MouseEvent("mousedown", MouseEventInit(100, 100, button = 0, buttons = 1)),
-            MouseEvent("mouseup", MouseEventInit(100, 100, button = 0, buttons = 0))
+            MouseEvent("mouseenter", MouseEventInit(clientX = 100, clientY = 100)),
+            MouseEvent("mousedown", MouseEventInit(clientX = 100, clientY = 100, button = 0, buttons = 1)),
+            MouseEvent("mouseup", MouseEventInit(clientX = 100, clientY = 100, button = 0, buttons = 0))
         )
 
         assertEquals(3, pointerEvents.size)
@@ -70,8 +108,8 @@ class MouseEventsTest : OnCanvasTests {
         assertEquals(PointerButton.Primary, pointerEvents[2].button)
 
         dispatchEvents(
-            MouseEvent("mousedown", MouseEventInit(100, 100, button = 2, buttons = 2)),
-            MouseEvent("mouseup", MouseEventInit(100, 100, button = 2, buttons = 0))
+            MouseEvent("mousedown", MouseEventInit(clientX = 100, clientY = 100, button = 2, buttons = 2)),
+            MouseEvent("mouseup", MouseEventInit(clientX = 100, clientY = 100, button = 2, buttons = 0))
         )
 
         assertEquals(5, pointerEvents.size)
@@ -99,17 +137,17 @@ class MouseEventsTest : OnCanvasTests {
         }
 
         dispatchEvents(
-            MouseEvent("mouseenter", MouseEventInit(100, 100)),
-            MouseEvent("mousedown", MouseEventInit(100, 100, button = 0, buttons = 1)),
-            MouseEvent("mouseup", MouseEventInit(100, 100, button = 0, buttons = 0))
+            MouseEvent("mouseenter", MouseEventInit(clientX = 100, clientY = 100)),
+            MouseEvent("mousedown", MouseEventInit(clientX = 100, clientY = 100, button = 0, buttons = 1)),
+            MouseEvent("mouseup", MouseEventInit(clientX = 100, clientY = 100, button = 0, buttons = 0))
         )
 
         assertEquals(1, primaryClickedCounter)
         assertEquals(0, secondaryClickedCounter)
 
         dispatchEvents(
-            MouseEvent("mousedown", MouseEventInit(100, 100, button = 2, buttons = 2)),
-            MouseEvent("mouseup", MouseEventInit(100, 100, button = 2, buttons = 0))
+            MouseEvent("mousedown", MouseEventInit(clientX = 100, clientY = 100, button = 2, buttons = 2)),
+            MouseEvent("mouseup", MouseEventInit(clientX = 100, clientY = 100, button = 2, buttons = 0))
         )
 
         assertEquals(1, primaryClickedCounter)
@@ -136,15 +174,15 @@ class MouseEventsTest : OnCanvasTests {
 
         assertEquals(null, event)
 
-        dispatchEvents(MouseEvent("mouseenter", MouseEventInit(100, 100)))
+        dispatchEvents(MouseEvent("mouseenter", MouseEventInit(clientX = 100, clientY = 100)))
         assertEquals(PointerEventType.Enter, event!!.type)
         assertEquals(null, event!!.button)
 
-        dispatchEvents(MouseEvent("mousemove", MouseEventInit(101, 101, clientX = 101, clientY = 101)))
+        dispatchEvents(MouseEvent("mousemove", MouseEventInit(clientX = 101, clientY = 101)))
         assertEquals(PointerEventType.Move, event!!.type)
         assertEquals(null, event!!.button)
 
-        dispatchEvents(MouseEvent("mouseleave", MouseEventInit(0, 0, clientX = 0, clientY = 0)))
+        dispatchEvents(MouseEvent("mouseleave", MouseEventInit(clientX = 0, clientY = 0)))
         assertEquals(PointerEventType.Exit, event!!.type)
         assertEquals(null, event!!.button)
     }

@@ -73,6 +73,9 @@ open class AndroidXComposeMultiplatformExtensionImpl @Inject constructor(
         desktopTest.dependsOn(jvmTest)
     }
 
+    val skikoWasm = project.configurations.findByName("skikoWasm")
+        ?: project.configurations.create("skikoWasm")
+
     override fun js(): Unit = multiplatformExtension.run {
         js(KotlinJsCompilerType.IR) {
             browser {
@@ -92,6 +95,32 @@ open class AndroidXComposeMultiplatformExtensionImpl @Inject constructor(
         val commonMain = sourceSets.getByName("commonMain")
         val jsMain = sourceSets.getByName("jsMain")
         jsMain.dependsOn(commonMain)
+
+        val resourcesDir = project.buildDir.resolve("resources/skiko-js")
+
+        // Below code helps configure the tests for k/wasm targets
+        project.dependencies {
+            skikoWasm("org.jetbrains.skiko:skiko-js-wasm-runtime:${skikoVersion}")
+        }
+
+        val fetchSkikoWasmRuntime = project.tasks.register("fetchSkikoJsWasmRuntime", Copy::class.java) {
+            it.destinationDir = project.file(resourcesDir)
+            it.from(skikoWasm.map { artifact ->
+                project.zipTree(artifact)
+                    .matching { pattern ->
+                        pattern.include("skiko.wasm", "skiko.js")
+                    }
+            })
+        }
+
+        project.tasks.getByName("jsTestProcessResources").apply {
+            dependsOn(fetchSkikoWasmRuntime)
+        }
+
+        sourceSets.getByName("jsTest").also {
+            it.resources.setSrcDirs(it.resources.srcDirs)
+            it.resources.srcDirs(fetchSkikoWasmRuntime.map { it.destinationDir })
+        }
     }
 
     internal val Project.isInIdea: Boolean
@@ -116,8 +145,7 @@ open class AndroidXComposeMultiplatformExtensionImpl @Inject constructor(
             }
         }
 
-        val resourcesDir = project.buildDir.resolve("resources")
-        val skikoWasm by project.configurations.creating
+        val resourcesDir = project.buildDir.resolve("resources/skiko-wasm")
 
         // Below code helps configure the tests for k/wasm targets
         project.dependencies {
@@ -134,7 +162,7 @@ open class AndroidXComposeMultiplatformExtensionImpl @Inject constructor(
             })
         }
 
-        project.tasks.getByName("wasmJsBrowserTest").apply {
+        project.tasks.getByName("wasmJsTestProcessResources").apply {
             dependsOn(fetchSkikoWasmRuntime)
         }
 

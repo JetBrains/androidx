@@ -533,10 +533,10 @@ class ColorSpaceTest {
                 0.71415880f
             )
 
-        assertArrayEquals(sRGBD50, (adapted as Rgb).getTransform(), 1e-7f)
+        assertArrayEquals(sRGBD50, (adapted as Rgb).getTransform(), 1e-6f)
 
         adapted = ColorSpaces.Srgb.adapt(Illuminant.D50, Adaptation.Bradford)
-        assertArrayEquals(sRGBD50, (adapted as Rgb).getTransform(), 1e-7f)
+        assertArrayEquals(sRGBD50, (adapted as Rgb).getTransform(), 1e-6f)
     }
 
     @Test

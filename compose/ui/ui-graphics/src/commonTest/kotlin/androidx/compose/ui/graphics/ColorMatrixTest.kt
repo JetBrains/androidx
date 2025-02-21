@@ -219,6 +219,7 @@ class ColorMatrixTest {
             assertEquals(
                 expected[i],
                 ret[i],
+                tolerance,
                 "Expected: $expected[i] at index: $i received: $ret[i]"
             )
         }

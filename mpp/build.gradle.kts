@@ -192,11 +192,11 @@ tasks.register("testWeb") {
 
 val testWebJs = tasks.register("testWebJs") {
     dependsOn(":collection:collection:compileTestKotlinJs")
-    dependsOn(":compose:foundation:foundation:compileTestKotlinJs")
-    dependsOn(":compose:material3:material3:compileTestKotlinJs")
+    dependsOn(":compose:foundation:foundation:jsTest")
+    dependsOn(":compose:material3:material3:jsTest")
     dependsOn(":compose:runtime:runtime:jsTest")
-    dependsOn(":compose:ui:ui-text:compileTestKotlinJs")
-    dependsOn(":compose:ui:ui:compileTestKotlinJs")
+    dependsOn(":compose:ui:ui-text:jsTest")
+    dependsOn(":compose:ui:ui:jsTest")
     dependsOn(":navigation:navigation-runtime:jsTest")
 }
 
