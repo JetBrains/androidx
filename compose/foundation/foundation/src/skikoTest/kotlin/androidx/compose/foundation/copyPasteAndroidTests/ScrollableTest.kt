@@ -58,6 +58,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.test.IgnoreUIKitTarget
 import kotlinx.test.IgnoreWasmTarget
 
 @OptIn(ExperimentalTestApi::class)
@@ -2477,7 +2478,7 @@ class ScrollableTest {
     }
 
     @Test
-    @Ignore // TODO(https://youtrack.jetbrains.com/issue/CMP-7220) Fails on iOS
+    @IgnoreUIKitTarget // Density not taken into account in CupertinoFlingBehaviour
     fun onDensityChange_shouldUpdateFlingBehavior() = runSkikoComposeUiTest {
         var density by mutableStateOf(density)
         var flingDelta = 0f

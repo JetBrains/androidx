@@ -16,3 +16,5 @@
 package kotlinx.test
 
 actual typealias IgnoreWasmTarget = kotlin.test.Ignore
+
+actual typealias IgnoreUIKitTarget = DoNothing
