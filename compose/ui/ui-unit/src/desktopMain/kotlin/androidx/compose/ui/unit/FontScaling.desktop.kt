@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 The Android Open Source Project
+ * Copyright 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,10 @@
 
 package androidx.compose.ui.unit
 
-/**
- * Converts [TextUnit] to [Dp] and vice-versa.
- */
-actual typealias FontScaling = FontScalingLinear
+import androidx.compose.ui.unit.fontscaling.FontScaleConverter
+
+internal actual fun isNonLinearFontScalingActive(fontScale: Float): Boolean = false
+
+internal actual fun defaultFontScaleConverters() : Map<Float, FontScaleConverter> = emptyMap()
+
+internal actual val NonLinearFontSizeAnchors : List<Float> get() = emptyList()
