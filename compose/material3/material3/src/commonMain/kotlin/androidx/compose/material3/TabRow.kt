@@ -17,10 +17,12 @@
 package androidx.compose.material3
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -36,7 +38,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import androidx.compose.material3.tokens.MotionSchemeKeyTokens
 import androidx.compose.material3.tokens.PrimaryNavigationTabTokens
 import androidx.compose.material3.tokens.SecondaryNavigationTabTokens
 import androidx.compose.runtime.Composable
@@ -129,6 +130,7 @@ import kotlinx.coroutines.launch
  * We can now just pass this indicator directly to TabRow:
  *
  * @sample androidx.compose.material3.samples.FancyIndicatorContainerTabs
+ *
  * @param selectedTabIndex the index of the currently selected tab
  * @param modifier the [Modifier] to be applied to this tab row
  * @param containerColor the color used for the background of this tab row. Use [Color.Transparent]
@@ -180,6 +182,7 @@ fun PrimaryTabRow(
  * A simple example with text tabs looks like:
  *
  * @sample androidx.compose.material3.samples.SecondaryTextTabs
+ *
  * @param selectedTabIndex the index of the currently selected tab
  * @param modifier the [Modifier] to be applied to this tab row
  * @param containerColor the color used for the background of this tab row. Use [Color.Transparent]
@@ -274,6 +277,7 @@ fun SecondaryTabRow(
  * We can now just pass this indicator directly to TabRow:
  *
  * @sample androidx.compose.material3.samples.FancyIndicatorContainerTabs
+ *
  * @param selectedTabIndex the index of the currently selected tab
  * @param modifier the [Modifier] to be applied to this tab row
  * @param containerColor the color used for the background of this tab row. Use [Color.Transparent]
@@ -570,8 +574,6 @@ private fun TabRowImpl(
         color = containerColor,
         contentColor = contentColor
     ) {
-        // TODO Load the motionScheme tokens from the component tokens file
-        val tabIndicatorAnimationSpec = MotionSchemeKeyTokens.DefaultSpatial.value<Dp>()
         val scope = remember {
             object : TabIndicatorScope, TabPositionsHolder {
 
@@ -598,12 +600,7 @@ private fun TabRowImpl(
                     matchContentSize: Boolean
                 ): Modifier =
                     this.then(
-                        TabIndicatorModifier(
-                            tabPositions,
-                            selectedTabIndex,
-                            matchContentSize,
-                            tabIndicatorAnimationSpec
-                        )
+                        TabIndicatorModifier(tabPositions, selectedTabIndex, matchContentSize)
                     )
 
                 override fun setTabPositions(positions: List<TabPosition>) {
@@ -712,17 +709,9 @@ private fun ScrollableTabRowImpl(
         contentColor = contentColor
     ) {
         val coroutineScope = rememberCoroutineScope()
-        // TODO Load the motionScheme tokens from the component tokens file
-        val scrollAnimationSpec = MotionSchemeKeyTokens.DefaultSpatial.value<Float>()
-        val tabIndicatorAnimationSpec: FiniteAnimationSpec<Dp> =
-            MotionSchemeKeyTokens.DefaultSpatial.value()
         val scrollableTabData =
             remember(scrollState, coroutineScope) {
-                ScrollableTabData(
-                    scrollState = scrollState,
-                    coroutineScope = coroutineScope,
-                    animationSpec = scrollAnimationSpec
-                )
+                ScrollableTabData(scrollState = scrollState, coroutineScope = coroutineScope)
             }
 
         val scope = remember {
@@ -751,12 +740,7 @@ private fun ScrollableTabRowImpl(
                     matchContentSize: Boolean
                 ): Modifier =
                     this.then(
-                        TabIndicatorModifier(
-                            tabPositions,
-                            selectedTabIndex,
-                            matchContentSize,
-                            tabIndicatorAnimationSpec
-                        )
+                        TabIndicatorModifier(tabPositions, selectedTabIndex, matchContentSize)
                     )
 
                 override fun setTabPositions(positions: List<TabPosition>) {
@@ -860,7 +844,6 @@ internal data class TabIndicatorModifier(
     val tabPositionsState: State<List<TabPosition>>,
     val selectedTabIndex: Int,
     val followContentSize: Boolean,
-    val animationSpec: FiniteAnimationSpec<Dp>
 ) : ModifierNodeElement<TabIndicatorOffsetNode>() {
 
     override fun create(): TabIndicatorOffsetNode {
@@ -868,7 +851,6 @@ internal data class TabIndicatorModifier(
             tabPositionsState = tabPositionsState,
             selectedTabIndex = selectedTabIndex,
             followContentSize = followContentSize,
-            animationSpec = animationSpec
         )
     }
 
@@ -876,7 +858,6 @@ internal data class TabIndicatorModifier(
         node.tabPositionsState = tabPositionsState
         node.selectedTabIndex = selectedTabIndex
         node.followContentSize = followContentSize
-        node.animationSpec = animationSpec
     }
 
     override fun InspectorInfo.inspectableProperties() {
@@ -887,8 +868,7 @@ internal data class TabIndicatorModifier(
 internal class TabIndicatorOffsetNode(
     var tabPositionsState: State<List<TabPosition>>,
     var selectedTabIndex: Int,
-    var followContentSize: Boolean,
-    var animationSpec: FiniteAnimationSpec<Dp>
+    var followContentSize: Boolean
 ) : Modifier.Node(), LayoutModifierNode {
 
     private var offsetAnimatable: Animatable<Dp, AnimationVector1D>? = null
@@ -917,7 +897,7 @@ internal class TabIndicatorOffsetNode(
                     ?: Animatable(initialWidth!!, Dp.VectorConverter).also { widthAnimatable = it }
 
             if (currentTabWidth != widthAnim.targetValue) {
-                coroutineScope.launch { widthAnim.animateTo(currentTabWidth, animationSpec) }
+                coroutineScope.launch { widthAnim.animateTo(currentTabWidth, TabRowIndicatorSpec) }
             }
         } else {
             initialWidth = currentTabWidth
@@ -933,7 +913,7 @@ internal class TabIndicatorOffsetNode(
                     }
 
             if (indicatorOffset != offsetAnim.targetValue) {
-                coroutineScope.launch { offsetAnim.animateTo(indicatorOffset, animationSpec) }
+                coroutineScope.launch { offsetAnim.animateTo(indicatorOffset, TabRowIndicatorSpec) }
             }
         } else {
             initialOffset = indicatorOffset
@@ -1035,15 +1015,9 @@ private fun ScrollableTabRowWithSubcomposeImpl(
 ) {
     Surface(modifier = modifier, color = containerColor, contentColor = contentColor) {
         val coroutineScope = rememberCoroutineScope()
-        // TODO Load the motionScheme tokens from the component tokens file
-        val scrollAnimationSpec = MotionSchemeKeyTokens.DefaultSpatial.value<Float>()
         val scrollableTabData =
             remember(scrollState, coroutineScope) {
-                ScrollableTabData(
-                    scrollState = scrollState,
-                    coroutineScope = coroutineScope,
-                    animationSpec = scrollAnimationSpec
-                )
+                ScrollableTabData(scrollState = scrollState, coroutineScope = coroutineScope)
             }
         SubcomposeLayout(
             Modifier.fillMaxWidth()
@@ -1289,16 +1263,15 @@ object TabRowDefaults {
                     value = currentTabPosition
                 }
         ) {
-            // TODO Load the motionScheme tokens from the component tokens file
             val currentTabWidth by
                 animateDpAsState(
                     targetValue = currentTabPosition.width,
-                    animationSpec = MotionSchemeKeyTokens.DefaultSpatial.value()
+                    animationSpec = TabRowIndicatorSpec
                 )
             val indicatorOffset by
                 animateDpAsState(
                     targetValue = currentTabPosition.left,
-                    animationSpec = MotionSchemeKeyTokens.DefaultSpatial.value()
+                    animationSpec = TabRowIndicatorSpec
                 )
             fillMaxWidth()
                 .wrapContentSize(Alignment.BottomStart)
@@ -1316,8 +1289,7 @@ private enum class TabSlots {
 /** Class holding onto state needed for [ScrollableTabRow] */
 private class ScrollableTabData(
     private val scrollState: ScrollState,
-    private val coroutineScope: CoroutineScope,
-    private val animationSpec: FiniteAnimationSpec<Float>
+    private val coroutineScope: CoroutineScope
 ) {
     private var selectedTab: Int? = null
 
@@ -1337,7 +1309,10 @@ private class ScrollableTabData(
                 val calculatedOffset = it.calculateTabOffset(density, edgeOffset, tabPositions)
                 if (scrollState.value != calculatedOffset) {
                     coroutineScope.launch {
-                        scrollState.animateScrollTo(calculatedOffset, animationSpec = animationSpec)
+                        scrollState.animateScrollTo(
+                            calculatedOffset,
+                            animationSpec = ScrollableTabRowScrollSpec
+                        )
                     }
                 }
             }
@@ -1369,3 +1344,11 @@ private class ScrollableTabData(
 }
 
 private val ScrollableTabRowMinimumTabWidth = 90.dp
+
+/** [AnimationSpec] used when scrolling to a tab that is not fully visible. */
+private val ScrollableTabRowScrollSpec: AnimationSpec<Float> =
+    tween(durationMillis = 250, easing = FastOutSlowInEasing)
+
+/** [AnimationSpec] used when an indicator is updating width and/or offset. */
+private val TabRowIndicatorSpec: AnimationSpec<Dp> =
+    tween(durationMillis = 250, easing = FastOutSlowInEasing)

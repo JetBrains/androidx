@@ -203,10 +203,9 @@ internal abstract class CalendarModel(val locale: CalendarLocale) {
      *
      * @param date a date string
      * @param pattern the expected date pattern to be used for parsing the date string
-     * @param locale a [CalendarLocale] to be used for parsing the date string
      * @return a [CalendarDate], or a `null` in case the parsing failed
      */
-    abstract fun parse(date: String, pattern: String, locale: CalendarLocale): CalendarDate?
+    abstract fun parse(date: String, pattern: String): CalendarDate?
 }
 
 /**
@@ -316,3 +315,4 @@ internal fun datePatternAsInputFormat(localeFormat: String): DateInputFormat {
 
 internal const val DaysInWeek: Int = 7
 internal const val MillisecondsIn24Hours = 86400000L
+internal const val MillisecondsIn24HoursDouble = 86400000.0

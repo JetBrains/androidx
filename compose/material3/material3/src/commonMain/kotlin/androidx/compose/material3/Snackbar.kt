@@ -23,7 +23,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.internal.Icons
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.internal.Strings
 import androidx.compose.material3.internal.getString
 import androidx.compose.material3.tokens.SnackbarTokens
@@ -77,6 +78,7 @@ import kotlin.math.min
  * For a multiline sample following the Material recommended spec of a maximum of 2 lines, see:
  *
  * @sample androidx.compose.material3.samples.ScaffoldWithMultilineSnackbar
+ *
  * @param modifier the [Modifier] to be applied to this snackbar
  * @param action action / button component to add as an action to the snackbar. Consider using
  *   [ColorScheme.inversePrimary] as the color for the action, if you do not have a predefined color
@@ -181,6 +183,7 @@ fun Snackbar(
  * [SnackbarVisuals.withDismissAction]:
  *
  * @sample androidx.compose.material3.samples.ScaffoldWithIndefiniteSnackbar
+ *
  * @param snackbarData data about the current snackbar showing via [SnackbarHostState]
  * @param modifier the [Modifier] to be applied to this snackbar
  * @param actionOnNewLine whether or not action should be put on a separate line. Recommended for

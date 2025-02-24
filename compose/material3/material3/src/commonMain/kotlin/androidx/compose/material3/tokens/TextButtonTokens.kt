@@ -13,22 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// VERSION: v0_11_0
+// VERSION: v0_103
 // GENERATED CODE - DO NOT MODIFY BY HAND
+
 package androidx.compose.material3.tokens
+
+import androidx.compose.ui.unit.dp
+
 internal object TextButtonTokens {
-    val DisabledContainerColor = ColorSchemeKeyTokens.OnSurface
-    val DisabledContainerOpacity = 0.1f
-    val DisabledIconColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val DisabledIconOpacity = 0.38f
-    val DisabledLabelColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val DisabledLabelOpacity = 0.38f
-    val FocusedIconColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val FocusedLabelColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val HoveredIconColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val HoveredLabelColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val IconColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val LabelColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val PressedIconColor = ColorSchemeKeyTokens.OnSurfaceVariant
-    val PressedLabelColor = ColorSchemeKeyTokens.OnSurfaceVariant
+    val ContainerHeight = 40.0.dp
+    val ContainerShape = ShapeKeyTokens.CornerFull
+    val DisabledLabelTextColor = ColorSchemeKeyTokens.OnSurface
+    const val DisabledLabelTextOpacity = 0.38f
+    val FocusLabelTextColor = ColorSchemeKeyTokens.Primary
+    val HoverLabelTextColor = ColorSchemeKeyTokens.Primary
+    val LabelTextColor = ColorSchemeKeyTokens.Primary
+    val LabelTextFont = TypographyKeyTokens.LabelLarge
+    val PressedLabelTextColor = ColorSchemeKeyTokens.Primary
+    val DisabledIconColor = ColorSchemeKeyTokens.OnSurface
+    const val DisabledIconOpacity = 0.38f
+    val FocusIconColor = ColorSchemeKeyTokens.Primary
+    val HoverIconColor = ColorSchemeKeyTokens.Primary
+    val IconColor = ColorSchemeKeyTokens.Primary
+    val IconSize = 18.0.dp
+    val PressedIconColor = ColorSchemeKeyTokens.Primary
 }

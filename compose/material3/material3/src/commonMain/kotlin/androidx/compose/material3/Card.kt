@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.Dp
  * Card sample:
  *
  * @sample androidx.compose.material3.samples.CardSample
+ *
  * @param modifier the [Modifier] to be applied to this card
  * @param shape defines the shape of this card's container, border (when [border] is not null), and
  *   shadow (when using [elevation])
@@ -75,7 +76,6 @@ import androidx.compose.ui.unit.Dp
  *   [ColorScheme.surface], this controls the amount of primary color applied as an overlay. See
  *   also: [Surface].
  * @param border the border to draw around the container of this card
- * @param content The content displayed on the card
  */
 @Composable
 fun Card(
@@ -114,6 +114,7 @@ fun Card(
  * Clickable card sample:
  *
  * @sample androidx.compose.material3.samples.ClickableCardSample
+ *
  * @param onClick called when this card is clicked
  * @param modifier the [Modifier] to be applied to this card
  * @param enabled controls the enabled state of this card. When `false`, this component will not
@@ -132,7 +133,6 @@ fun Card(
  *   emitting [Interaction]s for this card. You can use this to change the card's appearance or
  *   preview the card in different states. Note that if `null` is provided, interactions will still
  *   happen internally.
- * @param content The content displayed on the card
  */
 @Composable
 fun Card(
@@ -180,6 +180,7 @@ fun Card(
  * Elevated card sample:
  *
  * @sample androidx.compose.material3.samples.ElevatedCardSample
+ *
  * @param modifier the [Modifier] to be applied to this card
  * @param shape defines the shape of this card's container and shadow (when using [elevation])
  * @param colors [CardColors] that will be used to resolve the color(s) used for this card in
@@ -188,7 +189,6 @@ fun Card(
  *   This controls the size of the shadow below the card. Additionally, when the container color is
  *   [ColorScheme.surface], this controls the amount of primary color applied as an overlay. See
  *   also: [Surface].
- * @param content The content displayed on the card
  */
 @Composable
 fun ElevatedCard(
@@ -223,6 +223,7 @@ fun ElevatedCard(
  * Clickable elevated card sample:
  *
  * @sample androidx.compose.material3.samples.ClickableElevatedCardSample
+ *
  * @param onClick called when this card is clicked
  * @param modifier the [Modifier] to be applied to this card
  * @param enabled controls the enabled state of this card. When `false`, this component will not
@@ -239,7 +240,6 @@ fun ElevatedCard(
  *   emitting [Interaction]s for this card. You can use this to change the card's appearance or
  *   preview the card in different states. Note that if `null` is provided, interactions will still
  *   happen internally.
- * @param content The content displayed on the card
  */
 @Composable
 fun ElevatedCard(
@@ -280,6 +280,7 @@ fun ElevatedCard(
  * Outlined card sample:
  *
  * @sample androidx.compose.material3.samples.OutlinedCardSample
+ *
  * @param modifier the [Modifier] to be applied to this card
  * @param shape defines the shape of this card's container, border (when [border] is not null), and
  *   shadow (when using [elevation])
@@ -290,7 +291,6 @@ fun ElevatedCard(
  *   [ColorScheme.surface], this controls the amount of primary color applied as an overlay. See
  *   also: [Surface].
  * @param border the border to draw around the container of this card
- * @param content The content displayed on the card
  */
 @Composable
 fun OutlinedCard(
@@ -325,6 +325,7 @@ fun OutlinedCard(
  * Clickable outlined card sample:
  *
  * @sample androidx.compose.material3.samples.ClickableOutlinedCardSample
+ *
  * @param onClick called when this card is clicked
  * @param modifier the [Modifier] to be applied to this card
  * @param enabled controls the enabled state of this card. When `false`, this component will not
@@ -343,7 +344,6 @@ fun OutlinedCard(
  *   emitting [Interaction]s for this card. You can use this to change the card's appearance or
  *   preview the card in different states. Note that if `null` is provided, interactions will still
  *   happen internally.
- * @param content The content displayed on the card
  */
 @Composable
 fun OutlinedCard(
@@ -393,7 +393,6 @@ object CardDefaults {
      * @param focusedElevation the elevation used when the [Card] is focused.
      * @param hoveredElevation the elevation used when the [Card] is hovered.
      * @param draggedElevation the elevation used when the [Card] is dragged.
-     * @param disabledElevation the elevation used when the [Card] is disabled.
      */
     @Composable
     fun cardElevation(
@@ -423,7 +422,6 @@ object CardDefaults {
      * @param focusedElevation the elevation used when the [ElevatedCard] is focused.
      * @param hoveredElevation the elevation used when the [ElevatedCard] is hovered.
      * @param draggedElevation the elevation used when the [ElevatedCard] is dragged.
-     * @param disabledElevation the elevation used when the [Card] is disabled.
      */
     @Composable
     fun elevatedCardElevation(

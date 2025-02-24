@@ -18,6 +18,7 @@ package androidx.compose.material3
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -27,7 +28,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.material3.tokens.MotionSchemeKeyTokens
 import androidx.compose.material3.tokens.RadioButtonTokens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
  * [Row]) to achieve radio group-like behaviour, where the entire layout is selectable:
  *
  * @sample androidx.compose.material3.samples.RadioGroupSample
+ *
  * @param selected whether this radio button is selected or not
  * @param onClick called when this radio button is clicked. If `null`, then this radio button will
  *   not be interactable, unless something else handles its input events and updates its state.
@@ -83,8 +84,7 @@ fun RadioButton(
     val dotRadius =
         animateDpAsState(
             targetValue = if (selected) RadioButtonDotSize / 2 else 0.dp,
-            // TODO Load the motionScheme tokens from the component tokens file
-            animationSpec = MotionSchemeKeyTokens.FastSpatial.value()
+            animationSpec = tween(durationMillis = RadioAnimationDuration)
         )
     val radioColor = colors.radioColor(enabled, selected)
     val selectableModifier =
@@ -95,7 +95,11 @@ fun RadioButton(
                 enabled = enabled,
                 role = Role.RadioButton,
                 interactionSource = interactionSource,
-                indication = ripple(bounded = false, radius = RadioButtonTokens.StateLayerSize / 2)
+                indication =
+                    rippleOrFallbackImplementation(
+                        bounded = false,
+                        radius = RadioButtonTokens.StateLayerSize / 2
+                    )
             )
         } else {
             Modifier
@@ -234,8 +238,7 @@ constructor(
         // If not enabled 'snap' to the disabled state, as there should be no animations between
         // enabled / disabled.
         return if (enabled) {
-            // TODO Load the motionScheme tokens from the component tokens file
-            animateColorAsState(target, MotionSchemeKeyTokens.DefaultEffects.value())
+            animateColorAsState(target, tween(durationMillis = RadioAnimationDuration))
         } else {
             rememberUpdatedState(target)
         }
@@ -261,6 +264,8 @@ constructor(
         return result
     }
 }
+
+private const val RadioAnimationDuration = 100
 
 private val RadioButtonPadding = 2.dp
 private val RadioButtonDotSize = 12.dp

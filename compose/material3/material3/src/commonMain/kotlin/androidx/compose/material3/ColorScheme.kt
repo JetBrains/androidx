@@ -479,10 +479,14 @@ class ColorScheme(
     internal var defaultElevatedFilterChipColorsCached: SelectableChipColors? = null
     internal var defaultInputChipColorsCached: SelectableChipColors? = null
 
-    internal var defaultVerticalDragHandleColorsCached: DragHandleColors? = null
-
     @OptIn(ExperimentalMaterial3Api::class)
     internal var defaultTopAppBarColorsCached: TopAppBarColors? = null
+    @OptIn(ExperimentalMaterial3Api::class)
+    internal var defaultCenterAlignedTopAppBarColorsCached: TopAppBarColors? = null
+    @OptIn(ExperimentalMaterial3Api::class)
+    internal var defaultMediumTopAppBarColorsCached: TopAppBarColors? = null
+    @OptIn(ExperimentalMaterial3Api::class)
+    internal var defaultLargeTopAppBarColorsCached: TopAppBarColors? = null
 
     internal var defaultCheckboxColorsCached: CheckboxColors? = null
 
@@ -490,36 +494,25 @@ class ColorScheme(
     internal var defaultDatePickerColorsCached: DatePickerColors? = null
 
     internal var defaultIconButtonColorsCached: IconButtonColors? = null
-    internal var defaultIconButtonVibrantColorsCached: IconButtonColors? = null
     internal var defaultIconToggleButtonColorsCached: IconToggleButtonColors? = null
-    internal var defaultIconToggleButtonVibrantColorsCached: IconToggleButtonColors? = null
     internal var defaultFilledIconButtonColorsCached: IconButtonColors? = null
     internal var defaultFilledIconToggleButtonColorsCached: IconToggleButtonColors? = null
     internal var defaultFilledTonalIconButtonColorsCached: IconButtonColors? = null
     internal var defaultFilledTonalIconToggleButtonColorsCached: IconToggleButtonColors? = null
     internal var defaultOutlinedIconButtonColorsCached: IconButtonColors? = null
-    internal var defaultOutlinedIconButtonVibrantColorsCached: IconButtonColors? = null
     internal var defaultOutlinedIconToggleButtonColorsCached: IconToggleButtonColors? = null
-    internal var defaultOutlinedIconToggleButtonVibrantColorsCached: IconToggleButtonColors? = null
-
-    internal var defaultToggleButtonColorsCached: ToggleButtonColors? = null
-    internal var defaultElevatedToggleButtonColorsCached: ToggleButtonColors? = null
-    internal var defaultTonalToggleButtonColorsCached: ToggleButtonColors? = null
-    internal var defaultOutlinedToggleButtonColorsCached: ToggleButtonColors? = null
-
-    internal var defaultListItemColorsCached: ListItemColors? = null
 
     internal var defaultMenuItemColorsCached: MenuItemColors? = null
 
     internal var defaultNavigationBarItemColorsCached: NavigationBarItemColors? = null
-    internal var defaultShortNavigationBarItemColorsCached: NavigationItemColors? = null
 
     internal var defaultNavigationRailItemColorsCached: NavigationRailItemColors? = null
-    internal var defaultWideWideNavigationRailColorsCached: WideNavigationRailColors? = null
-    internal var defaultWideNavigationRailItemColorsCached: NavigationItemColors? = null
+
+    internal var defaultExpressiveNavigationBarItemColorsCached: NavigationItemColors? = null
 
     internal var defaultRadioButtonColorsCached: RadioButtonColors? = null
 
+    @OptIn(ExperimentalMaterial3Api::class)
     internal var defaultSegmentedButtonColorsCached: SegmentedButtonColors? = null
 
     internal var defaultSliderColorsCached: SliderColors? = null
@@ -534,11 +527,6 @@ class ColorScheme(
 
     @OptIn(ExperimentalMaterial3Api::class)
     internal var defaultRichTooltipColorsCached: RichTooltipColors? = null
-
-    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-    internal var defaultFloatingToolbarStandardColorsCached: FloatingToolbarColors? = null
-    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-    internal var defaultFloatingToolbarVibrantColorsCached: FloatingToolbarColors? = null
 }
 
 /** Returns a light Material color scheme. */
@@ -938,19 +926,15 @@ fun ColorScheme.surfaceColorAtElevation(
  * Returns a light Material color scheme.
  *
  * The default color scheme for [MaterialExpressiveTheme]. For dark mode, use [darkColorScheme].
- *
- * Example of MaterialExpressiveTheme toggling expressiveLightColorScheme and darkTheme.
- *
- * @sample androidx.compose.material3.samples.MaterialExpressiveThemeColorSchemeSample
  */
-@ExperimentalMaterial3ExpressiveApi
-fun expressiveLightColorScheme() =
+// TODO: Mark as experimental if scope is changed to public
+// TODO: Add samples for MaterialExpressiveTheme toggling expressiveLightColorScheme and darkTheme.
+internal fun expressiveLightColorScheme() =
     lightColorScheme(
         // TODO: Replace palette references with color token references when available.
         onPrimaryContainer = PaletteTokens.Primary30,
         onSecondaryContainer = PaletteTokens.Secondary30,
-        onTertiaryContainer = PaletteTokens.Tertiary30,
-        onErrorContainer = PaletteTokens.Error30
+        onTertiaryContainer = PaletteTokens.Secondary30,
     )
 
 /**
