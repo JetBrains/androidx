@@ -16,6 +16,7 @@
 
 package androidx.compose.foundation.text
 
+import androidx.compose.foundation.text.input.internal.selection.TextFieldPreparedSelection.Companion.NoCharacterFound
 import androidx.compose.ui.text.TextRange
 
 /** StringBuilder.appendCodePoint is already defined on JVM so it's called appendCodePointX. */
@@ -29,6 +30,13 @@ internal expect fun String.findPrecedingBreak(index: Int): Int
  * breaks before the end of the string.
  */
 internal expect fun String.findFollowingBreak(index: Int): Int
+
+/**
+ * @return If the index is within an emoji, returns the index of the start of the emoji. If the
+ *   index is not an emoji, returns the code point before the given [index], or [NoCharacterFound]
+ *   if there is no code point before [index].
+ */
+internal expect fun String.findCodePointOrEmojiStartBefore(index: Int): Int
 
 internal fun CharSequence.findParagraphStart(startIndex: Int): Int {
     for (index in startIndex downTo 1) {

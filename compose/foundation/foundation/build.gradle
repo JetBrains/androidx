@@ -185,6 +185,7 @@ if (AndroidXComposePlugin.isMultiplatformEnabled(project)) {
                 implementation(project(":internal-testutils-runtime"))
                 implementation("androidx.activity:activity-compose:1.3.1")
                 implementation("androidx.core:core:1.9.0")
+                implementation("androidx.emoji2:emoji2-bundled:1.5.0")
 
                 implementation(libs.testUiautomator)
                 implementation(libs.testRules)
@@ -260,4 +261,13 @@ androidx {
     inceptionYear = "2018"
     description = "Higher level abstractions of the Compose UI primitives. This library is design system agnostic, providing the high-level building blocks for both application and design-system developers"
     legacyDisableKotlinStrictApiMode = true
+}
+
+tasks.register("updateEmojiValues", UpdateEmojiValuesTask.class) {
+    description = "Update EmojiValues.kt"
+    group = "other"
+
+    emojiSequencesUrl = "https://unicode.org/Public/emoji/14.0/emoji-sequences.txt"
+    targetDirectory = project.file("src/skikoMain/kotlin/androidx/compose/foundation/text")
+    targetPackageName = "androidx.compose.foundation.text"
 }

@@ -16,8 +16,16 @@
 
 package androidx.compose.foundation.text.input.internal
 
+import androidx.compose.foundation.text.input.internal.selection.TextFieldPreparedSelection.Companion.NoCharacterFound
+
 internal expect fun CharSequence.codePointAt(index: Int): Int
 
 internal expect fun charCount(codePoint: Int): Int
 
 internal expect fun CharSequence.codePointBefore(index: Int): Int
+
+/**
+ * @return the code point before the given [index], or [NoCharacterFound] if there is no code point
+ *   before [index].
+ */
+internal expect fun CharSequence.findCodePointBefore(index: Int): Int

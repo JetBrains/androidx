@@ -16,6 +16,8 @@
 
 package androidx.compose.foundation.text
 
+import androidx.compose.foundation.text.input.internal.findCodePointBefore
+import androidx.compose.foundation.text.input.internal.selection.TextFieldPreparedSelection.Companion.NoCharacterFound
 import androidx.emoji2.text.EmojiCompat
 import java.text.BreakIterator
 
@@ -36,6 +38,18 @@ internal actual fun String.findFollowingBreak(index: Int): Int {
     val it = BreakIterator.getCharacterInstance()
     it.setText(this)
     return it.following(index)
+}
+
+internal actual fun String.findCodePointOrEmojiStartBefore(index: Int): Int {
+    if (index <= 0) return NoCharacterFound
+
+    val emojiCompat = getEmojiCompatIfLoaded()
+    if (emojiCompat == null) return findCodePointBefore(index)
+
+    val emojiStart = emojiCompat.getEmojiStart(this, index - 1)
+    if (emojiStart < 0) return findCodePointBefore(index)
+
+    return emojiStart
 }
 
 private fun getEmojiCompatIfLoaded(): EmojiCompat? =
