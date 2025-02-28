@@ -32,6 +32,7 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.util.*
 import javax.swing.JLayeredPane
+import javax.swing.SwingUtilities
 import javax.swing.SwingUtilities.isEventDispatchThread
 import org.jetbrains.skiko.GraphicsApi
 import org.jetbrains.skiko.SkiaLayerAnalytics
@@ -229,7 +230,13 @@ class ComposePanel @ExperimentalComposeUiApi constructor(
     override fun removeNotify() {
         _composeContainer?.removeNotify()
         if (isDisposeOnRemove) {
-            dispose()
+
+            // [dispose] might trigger hierarchy change for example removing [LayerType.OnComponent]
+            // layers. That will conflict with removing this [ComposePanel]. To avoid such
+            // issues we need to call [dispose] after leaving this method.
+            SwingUtilities.invokeLater {
+                dispose()
+            }
         }
         super.removeNotify()
     }
