@@ -317,6 +317,130 @@ class WindowStateTest {
         assertThat(window.placement).isEqualTo(WindowPlacement.Floating)
     }
 
+    @Test
+    fun `from floating to fullscreen to floating`() = runApplicationTest(
+        useDelay = isLinux || isMacOs,
+        delayMillis = 1000
+    ) {
+        val state = WindowState(size = DpSize(200.dp, 200.dp))
+        lateinit var window: ComposeWindow
+
+        launchTestApplication {
+            Window(onCloseRequest = {}, state) {
+                window = this.window
+            }
+        }
+
+        awaitIdle()
+
+        // Enter fullscreen from floating
+        state.placement = WindowPlacement.Floating
+        awaitIdle()
+        assertThat(window.placement).isEqualTo(WindowPlacement.Floating)
+
+        state.placement = WindowPlacement.Fullscreen
+        awaitIdle()
+        assertThat(window.placement).isEqualTo(WindowPlacement.Fullscreen)
+
+        // Exit fullscreen to floating
+        state.placement = WindowPlacement.Floating
+        awaitIdle()
+        assertThat(window.placement).isEqualTo(WindowPlacement.Floating)
+    }
+
+    @Test
+    fun `from maximized to fullscreen to floating`() = runApplicationTest(
+        useDelay = isLinux || isMacOs,
+        delayMillis = 1000
+    ) {
+        val state = WindowState(size = DpSize(200.dp, 200.dp))
+        lateinit var window: ComposeWindow
+
+        launchTestApplication {
+            Window(onCloseRequest = {}, state) {
+                window = this.window
+            }
+        }
+
+        awaitIdle()
+
+        // Enter fullscreen from maximized
+        state.placement = WindowPlacement.Maximized
+        awaitIdle()
+        assertThat(window.placement).isEqualTo(WindowPlacement.Maximized)
+
+        state.placement = WindowPlacement.Fullscreen
+        awaitIdle()
+        assertThat(window.placement).isEqualTo(WindowPlacement.Fullscreen)
+
+        // Exit fullscreen to floating
+        state.placement = WindowPlacement.Floating
+        awaitIdle()
+        assertThat(window.placement).isEqualTo(WindowPlacement.Floating)
+    }
+
+    @Test
+    fun `from maximized to fullscreen to maximized`() = runApplicationTest(
+        useDelay = isLinux || isMacOs,
+        delayMillis = 1000
+    ) {
+        val state = WindowState(size = DpSize(200.dp, 200.dp))
+        lateinit var window: ComposeWindow
+
+        launchTestApplication {
+            Window(onCloseRequest = {}, state) {
+                window = this.window
+            }
+        }
+
+        awaitIdle()
+
+        // Enter fullscreen from maximized
+        state.placement = WindowPlacement.Maximized
+        awaitIdle()
+        assertThat(window.placement).isEqualTo(WindowPlacement.Maximized)
+
+        state.placement = WindowPlacement.Fullscreen
+        awaitIdle()
+        assertThat(window.placement).isEqualTo(WindowPlacement.Fullscreen)
+
+        // Exit fullscreen to maximized
+        state.placement = WindowPlacement.Maximized
+        awaitIdle()
+        assertThat(window.placement).isEqualTo(WindowPlacement.Maximized)
+    }
+
+    @Test
+    fun `from floating to fullscreen to maximized`() = runApplicationTest(
+        useDelay = isLinux || isMacOs,
+        delayMillis = 1000
+    ) {
+        val state = WindowState(size = DpSize(200.dp, 200.dp))
+        lateinit var window: ComposeWindow
+
+        launchTestApplication {
+            Window(onCloseRequest = {}, state) {
+                window = this.window
+            }
+        }
+
+        awaitIdle()
+
+        // Enter fullscreen from floating
+        state.placement = WindowPlacement.Floating
+        awaitIdle()
+        assertThat(window.placement).isEqualTo(WindowPlacement.Floating)
+
+        state.placement = WindowPlacement.Fullscreen
+        awaitIdle()
+        assertThat(window.placement).isEqualTo(WindowPlacement.Fullscreen)
+
+        // Exit fullscreen to maximized
+        state.placement = WindowPlacement.Maximized
+        awaitIdle()
+        assertThat(window.placement).isEqualTo(WindowPlacement.Maximized)
+    }
+
     // https://github.com/JetBrains/compose-multiplatform/issues/3003
     @Test
     fun `WindowState placement after showing fullscreen window`() = runApplicationTest(
