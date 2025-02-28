@@ -1,0 +1,3 @@
+ MaseiReports: 
+
+A collection of reports for Masei projects, storing project and insights, collection of analytics and a central repository for data, Tracking progress, managing reports with a storing business intelligence and reports.
