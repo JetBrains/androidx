@@ -107,6 +107,7 @@ kotlin {
     iosX64("uikitX64") {
         binaries {
             executable() {
+                linkerOpts += "-ld64" //TODO: Workaround for Xcode 15 and Kotlin 1.9.0, fixed in Kotlin 1.9.10
                 entryPoint = "androidx.compose.mpp.demo.main"
                 freeCompilerArgs += listOf(
                     "-linker-option", "-framework", "-linker-option", "Metal",
@@ -121,6 +122,7 @@ kotlin {
     iosArm64("uikitArm64") {
         binaries {
             executable() {
+                linkerOpts += "-ld64" //TODO: Workaround for Xcode 15 and Kotlin 1.9.0, fixed in Kotlin 1.9.10
                 entryPoint = "androidx.compose.mpp.demo.main"
                 freeCompilerArgs += listOf(
                     "-linker-option", "-framework", "-linker-option", "Metal",
@@ -135,6 +137,7 @@ kotlin {
     iosSimulatorArm64("uikitSimArm64") {
         binaries {
             executable() {
+                linkerOpts += "-ld64" //TODO: Workaround for Xcode 15 and Kotlin 1.9.0, fixed in Kotlin 1.9.10
                 entryPoint = "androidx.compose.mpp.demo.main"
                 freeCompilerArgs += listOf(
                     "-linker-option", "-framework", "-linker-option", "Metal",

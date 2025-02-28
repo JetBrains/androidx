@@ -20,6 +20,7 @@ repositories {
 
 fun KotlinNativeBinaryContainer.configureFramework() {
     framework {
+        linkerOpts += "-ld64" //TODO: Workaround for Xcode 15 and Kotlin 1.9.0, fixed in Kotlin 1.9.10
         baseName = "shared"
         freeCompilerArgs += listOf(
             "-linker-option", "-framework", "-linker-option", "Metal",
