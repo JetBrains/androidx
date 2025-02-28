@@ -20,18 +20,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.InternalComposeUiApi
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draganddrop.DragAndDropManager
-import androidx.compose.ui.draganddrop.DragAndDropModifierNode
-import androidx.compose.ui.draganddrop.DragAndDropTarget
-import androidx.compose.ui.draganddrop.DragAndDropTransferData
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Matrix
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.InputModeManager
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -39,19 +31,15 @@ import androidx.compose.ui.node.LayoutNode
 import androidx.compose.ui.node.OwnedLayer
 import androidx.compose.ui.node.Owner
 import androidx.compose.ui.node.RootForTest
-import androidx.compose.ui.scene.ComposeScene
 import androidx.compose.ui.scene.CanvasLayersComposeScene
+import androidx.compose.ui.scene.ComposeScene
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsOwner
-import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.EditCommand
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.ImeOptions
-import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PlatformTextInputService
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.TextInputService
-import androidx.compose.ui.text.input.TextInputSession
 import kotlin.reflect.KProperty
 import kotlinx.coroutines.awaitCancellation
 
@@ -64,6 +52,11 @@ interface PlatformContext {
      * The value that will be provided to [LocalWindowInfo] by default.
      */
     val windowInfo: WindowInfo
+
+    /**
+     * The value that will be provided to [LocalPlatformScreenReader] by default.
+     */
+    val screenReader: PlatformScreenReader
 
     /**
      * Indicates if the compose view is positioned in a transparent window.
@@ -193,6 +186,10 @@ interface PlatformContext {
                 isWindowFocused = true
             }
             override val inputModeManager: InputModeManager = DefaultInputModeManager()
+
+            override val screenReader: PlatformScreenReader = object : PlatformScreenReader {
+                override val isActive: Boolean = false
+            }
         }
     }
 }
