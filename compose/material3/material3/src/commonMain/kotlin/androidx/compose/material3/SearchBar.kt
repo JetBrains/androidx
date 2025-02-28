@@ -74,6 +74,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -116,6 +117,7 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sign
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * <a href="https://m3.material.io/components/search/overview" class="external"
@@ -174,6 +176,7 @@ fun SearchBar(
     windowInsets: WindowInsets = SearchBarDefaults.windowInsets,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val animationProgress = remember { Animatable(initialValue = if (expanded) 1f else 0f) }
     val finalBackProgress = remember { mutableFloatStateOf(Float.NaN) }
     val firstBackEvent = remember { mutableStateOf<BackEventCompat?>(null) }
@@ -211,13 +214,15 @@ fun SearchBar(
                 finalBackProgress.floatValue = animationProgress.value
                 onExpandedChange(false)
             } catch (e: CancellationException) {
-                animationProgress.animateTo(
-                    targetValue = 1f,
-                    animationSpec = AnimationPredictiveBackExitFloatSpec
-                )
-                finalBackProgress.floatValue = Float.NaN
-                firstBackEvent.value = null
-                currentBackEvent.value = null
+                coroutineScope.launch {
+                    animationProgress.animateTo(
+                        targetValue = 1f,
+                        animationSpec = AnimationPredictiveBackExitFloatSpec
+                    )
+                    finalBackProgress.floatValue = Float.NaN
+                    firstBackEvent.value = null
+                    currentBackEvent.value = null
+                }
             }
         }
     }
