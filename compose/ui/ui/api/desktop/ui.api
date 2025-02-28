@@ -3584,12 +3584,15 @@ public abstract interface class androidx/compose/ui/platform/PlatformTextInputIn
 
 public abstract interface class androidx/compose/ui/platform/PlatformTextInputMethodRequest {
 	public abstract fun getEditProcessor ()Landroidx/compose/ui/text/input/EditProcessor;
+	public abstract fun getEditText ()Lkotlin/jvm/functions/Function1;
 	public abstract fun getFocusedRectInRoot ()Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getImeOptions ()Landroidx/compose/ui/text/input/ImeOptions;
 	public abstract fun getOnEditCommand ()Lkotlin/jvm/functions/Function1;
 	public abstract fun getOnImeAction ()Lkotlin/jvm/functions/Function1;
-	public abstract fun getState ()Landroidx/compose/ui/text/input/TextFieldValue;
+	public abstract fun getOutputValue ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun getState ()Landroidx/compose/ui/text/input/TextEditorState;
 	public abstract fun getTextLayoutResult ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun getValue ()Lkotlin/jvm/functions/Function0;
 }
 
 public abstract interface class androidx/compose/ui/platform/PlatformTextInputModifierNode : androidx/compose/ui/node/DelegatableNode {
@@ -3602,7 +3605,6 @@ public final class androidx/compose/ui/platform/PlatformTextInputModifierNodeKt 
 
 public abstract interface class androidx/compose/ui/platform/PlatformTextInputSession {
 	public abstract fun startInputMethod (Landroidx/compose/ui/platform/PlatformTextInputMethodRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun updateTextFieldValue (Landroidx/compose/ui/text/input/TextFieldValue;)V
 }
 
 public abstract interface class androidx/compose/ui/platform/PlatformTextInputSessionScope : androidx/compose/ui/platform/PlatformTextInputSession, kotlinx/coroutines/CoroutineScope {
