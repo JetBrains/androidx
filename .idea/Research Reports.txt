@@ -1,0 +1,18 @@
+Research Reports:
+
+1. Oracle Cloud Research Report: (link unavailable)
+2. IBM Cloud Security Research Report: (link unavailable)
+3. Microsoft Azure Security Research Report: (link unavailable)
+4. IBM Cloud AI Research Report: (link unavailable)
+5. Microsoft AI Research Report: (link unavailable)
+
+Oracle Cloud Specific Reports:
+
+1. Oracle Cloud Infrastructure (OCI) Research Report: (link unavailable)
+2. Oracle Cloud Security Research Report: (link unavailable)
+3. Oracle Cloud AI and Machine Learning Research Report: (link unavailable)
+
+Additional Resources:
+
+1. Oracle Cloud Blog: (link unavailable)
+2. ResearchGate: (link unavailable) (a platform for researchers to share and discover research)

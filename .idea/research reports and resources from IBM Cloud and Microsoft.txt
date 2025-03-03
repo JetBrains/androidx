@@ -1,0 +1,21 @@
+Research reports and resources from IBM Cloud and Microsoft:
+
+IBM Cloud Research Reports:
+
+1. IBM Cloud Security Research Report: (link unavailable)
+2. IBM Cloud AI Research Report: (link unavailable)
+3. IBM Cloud Blockchain Research Report: (link unavailable)
+
+Microsoft Research Reports:
+
+1. Microsoft Azure Security Research Report: (link unavailable)
+2. Microsoft AI Research Report: (link unavailable)
+3. Microsoft Cloud Computing Research Report: (link unavailable)
+
+Additional Resources:
+
+1. IBM Cloud Blog: (link unavailable)
+2. Microsoft Azure Blog: (link unavailable)
+3. ResearchGate: (link unavailable) (a platform for researchers to share and discover research)
+
+Please note that these links are subject to change, and you may need to register or log in to access some of the reports.
