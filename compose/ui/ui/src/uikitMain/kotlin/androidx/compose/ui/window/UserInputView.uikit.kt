@@ -16,6 +16,7 @@
 
 package androidx.compose.ui.window
 
+import androidx.compose.ui.backhandler.UIKitBackGestureRecognizer
 import androidx.compose.ui.scene.PointerEventResult
 import androidx.compose.ui.uikit.utils.CMPGestureRecognizer
 import androidx.compose.ui.viewinterop.InteropView
@@ -48,8 +49,6 @@ import platform.UIKit.UIScrollView
 import platform.UIKit.UITouch
 import platform.UIKit.UIView
 import platform.UIKit.setState
-import platform.darwin.dispatch_async
-import platform.darwin.dispatch_get_main_queue
 
 /**
  * A reason for why touches are sent to Compose
@@ -229,7 +228,10 @@ internal class UserInputGestureRecognizer(
     override fun canBePreventedByGestureRecognizer(
         preventingGestureRecognizer: UIGestureRecognizer
     ): Boolean {
-        return if (canIgnoreDragGesture(preventingGestureRecognizer)) {
+        return if (preventingGestureRecognizer is UIKitBackGestureRecognizer) {
+            cancelAllTrackedTouches()
+            true
+        } else if (canIgnoreDragGesture(preventingGestureRecognizer)) {
             false
         } else if (preventingGestureRecognizer is UserInputGestureRecognizer
             && preventingGestureRecognizer.state.isOngoing) {

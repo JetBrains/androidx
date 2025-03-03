@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toOffset
 import kotlin.math.abs
 import kotlinx.cinterop.BetaInteropApi
+import kotlinx.cinterop.CPointed
+import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ObjCAction
 import kotlinx.cinterop.useContents
 import platform.Foundation.NSSelectorFromString
@@ -58,14 +60,14 @@ internal class UIKitBackGestureDispatcher(
         getListener = { activeListener }
     )
 
-    private val leftEdgePanGestureRecognizer = UIScreenEdgePanGestureRecognizer(
+    private val leftEdgePanGestureRecognizer = UIKitBackGestureRecognizer(
         target = iosGestureHandler,
         action = NSSelectorFromString(UiKitScreenEdgePanGestureHandler::handleEdgePan.name + ":")
     ).apply {
         edges = UIRectEdgeLeft
     }
 
-    private val rightEdgePanGestureRecognizer = UIScreenEdgePanGestureRecognizer(
+    private val rightEdgePanGestureRecognizer = UIKitBackGestureRecognizer(
         target = iosGestureHandler,
         action = NSSelectorFromString(UiKitScreenEdgePanGestureHandler::handleEdgePan.name + ":")
     ).apply {
@@ -189,3 +191,11 @@ private class UiKitScreenEdgePanGestureHandler(
         }
     }
 }
+
+/**
+ * A special gesture recognizer that can cancel touches in the Compose scene.
+ * See [androidx.compose.ui.window.UserInputGestureRecognizer.canBePreventedByGestureRecognizer]
+ */
+internal class UIKitBackGestureRecognizer(
+    target: Any?, action: CPointer<out CPointed>?
+) : UIScreenEdgePanGestureRecognizer(target = target, action = action)
