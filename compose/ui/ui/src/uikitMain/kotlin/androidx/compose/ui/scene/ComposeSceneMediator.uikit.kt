@@ -66,6 +66,7 @@ import androidx.compose.ui.uikit.density
 import androidx.compose.ui.uikit.embedSubview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.asDpOffset
 import androidx.compose.ui.unit.asDpSize
@@ -193,6 +194,8 @@ internal class ComposeSceneMediator(
         override var isActive by mutableStateOf(false)
     }
 
+    private var disposed = false
+
     private val viewConfiguration: ViewConfiguration =
         object : ViewConfiguration by EmptyViewConfiguration {
             override val touchSlop: Float
@@ -209,22 +212,36 @@ internal class ComposeSceneMediator(
         )
     }
 
+    private var size: IntSize?
+        get() = scene.size
+        set(value) {
+            if (!disposed) {
+                scene.size = value
+            }
+        }
+
     var density: Density
         get() = scene.density
         set(value) {
-            scene.density = value
+            if (!disposed) {
+                scene.density = value
+            }
         }
 
     var layoutDirection: LayoutDirection
         get() = scene.layoutDirection
         set(value) {
-            scene.layoutDirection = value
+            if (!disposed) {
+                scene.layoutDirection = value
+            }
         }
 
     var compositionLocalContext: CompositionLocalContext?
         get() = scene.compositionLocalContext
         set(value) {
-            scene.compositionLocalContext = value
+            if (!disposed) {
+                scene.compositionLocalContext = value
+            }
         }
 
     private val applicationForegroundStateListener =
@@ -444,7 +461,7 @@ internal class ComposeSceneMediator(
                             stop = view.safeAreaInsets.toPlatformInsets(),
                             fraction = progress
                         )
-                        scene.size = lerp(
+                        size = lerp(
                             start = initialSize,
                             stop = currentViewSize,
                             fraction = progress
@@ -503,6 +520,7 @@ internal class ComposeSceneMediator(
     }
 
     fun dispose() {
+        disposed = true
         onPreviewKeyEvent = { false }
         onKeyEvent = { false }
 
@@ -536,7 +554,7 @@ internal class ComposeSceneMediator(
         layoutMargins = view.layoutMargins.toPlatformInsets()
         safeArea = view.safeAreaInsets.toPlatformInsets()
 
-        scene.size = currentViewSize.roundToIntSize()
+        size = currentViewSize.roundToIntSize()
     }
 
     private val currentViewSize: Size get() {
