@@ -20,3 +20,4 @@ internal actual fun StringBuilder.appendCodePointX(codePoint: Int): StringBuilde
     appendCodePoint(codePoint)
     return this
 }
+
