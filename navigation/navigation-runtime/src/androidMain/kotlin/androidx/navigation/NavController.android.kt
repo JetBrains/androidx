@@ -809,14 +809,14 @@ public actual open class NavController(
         val deepLinkIds = extras!!.getIntArray(KEY_DEEP_LINK_IDS)!!.toMutableList()
         val deepLinkArgs = extras.getParcelableArrayList<SavedState>(KEY_DEEP_LINK_ARGS)
 
+        // Probably deep linked to a single destination only.
+        if (deepLinkIds.size < 2) {
+            return false
+        }
+
         // Remove the leaf destination to pop up to one level above it
         var leafDestinationId = deepLinkIds.removeLastKt()
         deepLinkArgs?.removeLastKt()
-
-        // Probably deep linked to a single destination only.
-        if (deepLinkIds.isEmpty()) {
-            return false
-        }
 
         // Find the destination if the leaf destination was a NavGraph
         with(graph.findDestinationComprehensive(leafDestinationId, false)) {
@@ -1403,6 +1403,7 @@ public actual open class NavController(
         return false
     }
 
+    @MainThread
     private fun handleDeepLink(
         deepLink: IntArray,
         args: Array<SavedState?>,
@@ -2340,27 +2341,26 @@ public actual open class NavController(
             if (b == null) {
                 b = savedState()
             }
-            val backStack = arrayOfNulls<Parcelable>(backQueue.size)
-            var index = 0
+            val backStack = arrayListOf<Parcelable>()
             for (backStackEntry in this.backQueue) {
-                backStack[index++] = NavBackStackEntryState(backStackEntry)
+                backStack.add(NavBackStackEntryState(backStackEntry))
             }
-            b.write { putParcelableList(KEY_BACK_STACK, backStack.toList().filterNotNull()) }
+            b.write { putParcelableList(KEY_BACK_STACK, backStack) }
         }
         if (backStackMap.isNotEmpty()) {
             if (b == null) {
                 b = savedState()
             }
             val backStackDestIds = IntArray(backStackMap.size)
-            val backStackIds = ArrayList<String?>()
+            val backStackIds = ArrayList<String>()
             var index = 0
             for ((destId, id) in backStackMap) {
                 backStackDestIds[index++] = destId
-                backStackIds += id
+                backStackIds.add(id ?: "")
             }
             b.write {
                 putIntArray(KEY_BACK_STACK_DEST_IDS, backStackDestIds)
-                putStringList(KEY_BACK_STACK_IDS, backStackIds.toList().filterNotNull())
+                putStringList(KEY_BACK_STACK_IDS, backStackIds)
             }
         }
         if (backStackStates.isNotEmpty()) {
@@ -2370,16 +2370,9 @@ public actual open class NavController(
             val backStackStateIds = ArrayList<String>()
             for ((id, backStackStates) in backStackStates) {
                 backStackStateIds += id
-                val states = arrayOfNulls<Parcelable>(backStackStates.size)
-                backStackStates.forEachIndexed { stateIndex, backStackState ->
-                    states[stateIndex] = backStackState
-                }
-                b.write {
-                    putParcelableList(
-                        KEY_BACK_STACK_STATES_PREFIX + id,
-                        states.toList().filterNotNull()
-                    )
-                }
+                val states = arrayListOf<Parcelable>()
+                backStackStates.forEach { backStackState -> states.add(backStackState) }
+                b.write { putParcelableList(KEY_BACK_STACK_STATES_PREFIX + id, states) }
             }
             b.write { putStringList(KEY_BACK_STACK_STATES_IDS, backStackStateIds) }
         }
@@ -2410,13 +2403,18 @@ public actual open class NavController(
             backStackStates.clear()
             if (contains(KEY_BACK_STACK_DEST_IDS) && contains(KEY_BACK_STACK_IDS)) {
                 val backStackDestIds = getIntArray(KEY_BACK_STACK_DEST_IDS)
-                val backStackIds = getStringArray(KEY_BACK_STACK_IDS)
+                val backStackIds = getStringList(KEY_BACK_STACK_IDS)
                 backStackDestIds.forEachIndexed { index, id ->
-                    backStackMap[id] = backStackIds[index]
+                    backStackMap[id] =
+                        if (backStackIds[index] != "") {
+                            backStackIds[index]
+                        } else {
+                            null
+                        }
                 }
             }
             if (contains(KEY_BACK_STACK_STATES_IDS)) {
-                val backStackStateIds = getStringArray(KEY_BACK_STACK_STATES_IDS)
+                val backStackStateIds = getStringList(KEY_BACK_STACK_STATES_IDS)
                 backStackStateIds.forEach { id ->
                     if (contains(KEY_BACK_STACK_STATES_PREFIX + id)) {
                         val backStackState =

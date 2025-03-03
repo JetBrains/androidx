@@ -68,10 +68,12 @@ public actual class ComposeNavigator actual constructor() : Navigator<Destinatio
     }
 
     @NavDestination.ClassType(Composable::class)
-    public actual class Destination actual constructor(
+    public actual class Destination
+    actual constructor(
         navigator: ComposeNavigator,
         internal actual val content:
-            @Composable AnimatedContentScope.(@JvmSuppressWildcards NavBackStackEntry) -> Unit
+            @Composable
+            AnimatedContentScope.(@JvmSuppressWildcards NavBackStackEntry) -> Unit
     ) : NavDestination(navigator) {
 
         @Deprecated(

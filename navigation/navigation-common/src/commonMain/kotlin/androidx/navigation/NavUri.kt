@@ -43,7 +43,7 @@ internal expect object NavUriUtils {
      *   should be skipped
      * @return an encoded version of s suitable for use as a URI component
      */
-    internal fun encode(s: String, allow: String? = null): String
+    fun encode(s: String, allow: String? = null): String
 
     /**
      * Decodes '%'-escaped octets in the given string using the UTF-8 scheme. Replaces invalid
@@ -52,7 +52,7 @@ internal expect object NavUriUtils {
      * @param s encoded string to decode
      * @return the given string with escaped octets decoded
      */
-    internal fun decode(s: String): String
+    fun decode(s: String): String
 
     /**
      * Creates a Uri which parses the given encoded URI string.
@@ -60,5 +60,5 @@ internal expect object NavUriUtils {
      * @param uriString an RFC 2396-compliant, encoded URI
      * @return Uri for this given uri string
      */
-    internal fun parse(uriString: String): NavUri
+    fun parse(uriString: String): NavUri
 }

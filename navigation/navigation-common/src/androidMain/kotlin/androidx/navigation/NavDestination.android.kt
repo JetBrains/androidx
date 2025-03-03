@@ -253,8 +253,11 @@ actual constructor(public actual val navigatorName: String) {
         var bestMatch: DeepLinkMatch? = null
         for (deepLink in deepLinks) {
             val uri = navDeepLinkRequest.uri
-            // includes matching args for path, query, and fragment
+            // first filter out invalid matches
+            if (!deepLink.matches(navDeepLinkRequest)) continue
+            // then look for positive matches
             val matchingArguments =
+                // includes matching args for path, query, and fragment
                 if (uri != null) deepLink.getMatchingArguments(uri, _arguments) else null
             val matchingPathSegments = deepLink.calculateMatchingPathSegments(uri)
             val requestAction = navDeepLinkRequest.action
