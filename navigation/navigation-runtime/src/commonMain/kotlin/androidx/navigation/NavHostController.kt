@@ -23,21 +23,20 @@ import androidx.lifecycle.ViewModelStore
  * NavController to external dependencies.
  *
  * Apps should generally not construct controllers, instead obtain a relevant controller directly
- * from a navigation host via [NavHost.getNavController] or by using one of the utility methods on
- * the [Navigation] class.
+ * from a navigation host via [NavHost.navController] or by using one of the utility methods on the
+ * [Navigation] class.
  */
-public expect open class NavHostController : NavController {
+public expect class NavHostController : NavController {
     /**
      * Sets the host's [LifecycleOwner].
      *
      * @param owner The [LifecycleOwner] associated with the containing [NavHost].
-     * @see NavHostController.setOnBackPressedDispatcher
      */
     public final override fun setLifecycleOwner(owner: LifecycleOwner)
 
     /**
      * Sets the host's ViewModelStore used by the NavController to store ViewModels at the
-     * navigation graph level. This is required to call [getViewModelStoreOwner] and should
+     * navigation graph level. This is required to call `getViewModelStoreOwner` and should
      * generally be called for you by your [NavHost].
      *
      * You must call this method before [setGraph] or similar methods, because the [ViewModelStore]

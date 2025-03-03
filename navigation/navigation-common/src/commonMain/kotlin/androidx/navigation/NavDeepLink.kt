@@ -118,6 +118,15 @@ internal constructor(
         return matches(NavDeepLinkRequest(uri, null, null))
     }
 
+    /**
+     * Checks for matches on uri, action, and mimType between a deepLink and a deepLinkRequest.
+     *
+     * Returns false if the deepLink's field nullability differs from the requested link's field
+     * nullability (i.e. deeplink.action == null while requested.action != null), or if both fields
+     * are non-null but don't match.
+     *
+     * Returns true otherwise (including when both fields are null).
+     */
     internal fun matches(deepLinkRequest: NavDeepLinkRequest): Boolean {
         if (!matchUri(deepLinkRequest.uri)) {
             return false
