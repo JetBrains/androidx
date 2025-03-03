@@ -18,7 +18,17 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@protocol CMPViewControllerLifecycleDelegate
+
+- (void)viewControllerWillAppear;
+- (void)viewControllerDidDisappear;
+- (void)viewControllerWillDealloc;
+
+@end
+
 @interface CMPViewController : UIViewController
+
+- (id)initWithLifecycleDelegate:(id<CMPViewControllerLifecycleDelegate> _Nullable)delegate;
 
 /// Indicates that view controller is considered alive in terms of structural containment.
 /// Overriding classes should call super.

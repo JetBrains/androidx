@@ -31,6 +31,7 @@ import androidx.compose.ui.backhandler.LocalBackGestureDispatcher
 import androidx.compose.ui.backhandler.UIKitBackGestureDispatcher
 import androidx.compose.ui.graphics.asComposeCanvas
 import androidx.compose.ui.hapticfeedback.CupertinoHapticFeedback
+import androidx.compose.ui.platform.IOSLifecycleOwner
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalInternalViewModelStoreOwner
 import androidx.compose.ui.platform.PlatformContext
@@ -55,11 +56,12 @@ import androidx.compose.ui.window.ComposeView
 import androidx.compose.ui.window.DisplayLinkListener
 import androidx.compose.ui.window.FocusStack
 import androidx.compose.ui.window.MetalView
-import androidx.compose.ui.window.ViewControllerBasedLifecycleOwner
+import androidx.compose.ui.window.ViewControllerLifecycleDelegate
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlin.coroutines.CoroutineContext
 import kotlin.native.runtime.GC
 import kotlin.native.runtime.NativeRuntimeApi
+import kotlin.test.assertNotNull
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import kotlinx.cinterop.BetaInteropApi
@@ -89,43 +91,22 @@ import platform.darwin.dispatch_get_main_queue
 internal class ComposeHostingViewController(
     private val configuration: ComposeUIViewControllerConfiguration,
     private val content: @Composable () -> Unit,
+    private val lifecycleOwner: IOSLifecycleOwner = IOSLifecycleOwner(),
     coroutineContext: CoroutineContext = Dispatchers.Main
-) : CMPViewController(nibName = null, bundle = null) {
-    private val lifecycleOwner = ViewControllerBasedLifecycleOwner()
+) : CMPViewController(lifecycleDelegate = ViewControllerLifecycleDelegate(lifecycleOwner)) {
     private val hapticFeedback = CupertinoHapticFeedback()
 
-    private val rootMetalView = MetalView(
-        retrieveInteropTransaction = {
-            mediator?.retrieveInteropTransaction() ?: object : UIKitInteropTransaction {
-                override val actions = emptyList<UIKitInteropAction>()
-                override val isInteropActive = false
-            }
-        },
-        useSeparateRenderThreadWhenPossible = configuration.parallelRendering,
-        render = { canvas, nanoTime ->
-            mediator?.render(canvas.asComposeCanvas(), nanoTime)
-        }
-    ).apply {
-        canBeOpaque = configuration.opaque
-    }
     private val rootView = ComposeView(
-        onDidMoveToWindow = ::onDidMoveToWindow,
-        onLayoutSubviews = {},
-        metalView = rootMetalView,
         transparentForTouches = false,
         useOpaqueConfiguration = configuration.opaque,
     )
     private var mediator: ComposeSceneMediator? = null
     private val windowContext = PlatformWindowContext()
-    private val layers = UIKitComposeSceneLayersHolder(windowContext, configuration.parallelRendering)
+    private var layers: UIKitComposeSceneLayersHolder? = null
     private val layoutDirection get() = getLayoutDirection()
     private var hasViewAppeared: Boolean = false
     private val motionDurationScale = MotionDurationScaleImpl()
-    private val applicationActiveStateListener = ApplicationActiveStateListener {
-        if (it) {
-            updateMotionSpeed()
-        }
-    }
+    private var applicationActiveStateListener: ApplicationActiveStateListener? = null
     private val composeCoroutineContext: CoroutineContext = coroutineContext + motionDurationScale
 
     private val backGestureDispatcher = UIKitBackGestureDispatcher(
@@ -134,7 +115,7 @@ internal class ComposeHostingViewController(
     )
 
     fun hasInvalidations(): Boolean {
-        return mediator?.hasInvalidations == true || layers.hasInvalidations
+        return mediator?.hasInvalidations == true || layers?.hasInvalidations == true
     }
 
     /*
@@ -219,6 +200,7 @@ internal class ComposeHostingViewController(
 
         updateInterfaceOrientationState()
 
+        layers?.window = window
         windowContext.setWindowContainer(windowContainer)
         updateMotionSpeed()
     }
@@ -243,9 +225,6 @@ internal class ComposeHostingViewController(
     override fun viewWillAppear(animated: Boolean) {
         super.viewWillAppear(animated)
 
-        createMediatorIfNeeded()
-
-        lifecycleOwner.handleViewWillAppear()
         configuration.delegate.viewWillAppear(animated)
     }
 
@@ -254,7 +233,7 @@ internal class ComposeHostingViewController(
         super.viewDidAppear(animated)
         hasViewAppeared = true
         mediator?.sceneDidAppear()
-        layers.viewDidAppear()
+        layers?.viewDidAppear()
         configuration.delegate.viewDidAppear(animated)
     }
 
@@ -263,7 +242,7 @@ internal class ComposeHostingViewController(
         super.viewWillDisappear(animated)
         hasViewAppeared = false
         mediator?.sceneWillDisappear()
-        layers.viewWillDisappear()
+        layers?.viewWillDisappear()
         configuration.delegate.viewWillDisappear(animated)
     }
 
@@ -276,19 +255,23 @@ internal class ComposeHostingViewController(
             GC.collect()
         }
 
-        lifecycleOwner.handleViewDidDisappear()
         configuration.delegate.viewDidDisappear(animated)
+    }
+
+    override fun viewControllerDidEnterWindowHierarchy() {
+        super.viewControllerDidEnterWindowHierarchy()
+
+        startScene()
     }
 
     override fun viewControllerDidLeaveWindowHierarchy() {
         super.viewControllerDidLeaveWindowHierarchy()
 
-        dispose()
+        stopScene()
     }
 
     @OptIn(NativeRuntimeApi::class)
     override fun didReceiveMemoryWarning() {
-        println("didReceiveMemoryWarning")
         GC.collect()
         super.didReceiveMemoryWarning()
     }
@@ -320,7 +303,7 @@ internal class ComposeHostingViewController(
         displayLinkListener.start()
 
         val animations = mediator?.prepareAndGetSizeTransitionAnimation()
-        layers.animateSizeTransition(sizeTransitionScope, duration)
+        layers?.animateSizeTransition(sizeTransitionScope, duration)
         rootView.animateSizeTransition(sizeTransitionScope) {
             animations?.invoke(duration)
         }
@@ -334,7 +317,10 @@ internal class ComposeHostingViewController(
         )
     }
 
-    private fun createComposeSceneContext(platformContext: PlatformContext): ComposeSceneContext {
+    private fun createComposeSceneContext(
+        platformContext: PlatformContext,
+        metalView: MetalView
+    ): ComposeSceneContext {
         return object : ComposeSceneContext {
             override val platformContext: PlatformContext = platformContext
 
@@ -346,9 +332,9 @@ internal class ComposeHostingViewController(
             ): ComposeSceneLayer {
                 val layer = UIKitComposeSceneLayer(
                     onClosed = ::detachLayer,
-                    createComposeSceneContext = ::createComposeSceneContext,
+                    createComposeSceneContext = { createComposeSceneContext(it, metalView) },
                     hostCompositionLocals = { ProvideContainerCompositionLocals(it) },
-                    metalView = layers.metalView,
+                    metalView = metalView,
                     initDensity = density,
                     initLayoutDirection = layoutDirection,
                     onFocusBehavior = configuration.onFocusBehavior,
@@ -368,41 +354,18 @@ internal class ComposeHostingViewController(
 
     private fun createComposeScene(
         invalidate: () -> Unit,
-        platformContext: PlatformContext
+        platformContext: PlatformContext,
+        metalView: MetalView
     ): ComposeScene = PlatformLayersComposeScene(
         density = view.density,
         layoutDirection = layoutDirection,
         coroutineContext = composeCoroutineContext,
         composeSceneContext = createComposeSceneContext(
-            platformContext = platformContext
+            platformContext = platformContext,
+            metalView = metalView
         ),
         invalidate = invalidate,
     )
-
-    private fun createMediatorIfNeeded() {
-        if (mediator == null) {
-            mediator = createMediator()
-            onAccessibilityChanged()
-        }
-    }
-
-    private fun createMediator() = ComposeSceneMediator(
-        parentView = rootView,
-        onFocusBehavior = configuration.onFocusBehavior,
-        focusStack = focusStack,
-        windowContext = windowContext,
-        coroutineContext = composeCoroutineContext,
-        redrawer = rootMetalView.redrawer,
-        composeSceneFactory = ::createComposeScene,
-        backGestureDispatcher = backGestureDispatcher
-    ).also { mediator ->
-        mediator.updateInteractionRect()
-        mediator.setContent {
-            ProvideContainerCompositionLocals(content)
-        }
-
-        rootView.bringSubviewToFront(rootMetalView)
-    }
 
     /**
      * Enables or disables accessibility for each layer, as well as the root mediator, taking into
@@ -410,7 +373,7 @@ internal class ComposeHostingViewController(
      */
     private fun onAccessibilityChanged() {
         var isAccessibilityEnabled = true
-        layers.withLayers {
+        layers?.withLayers {
             it.fastForEachReversed { layer ->
                 layer.isAccessibilityEnabled = isAccessibilityEnabled
                 isAccessibilityEnabled = isAccessibilityEnabled && !layer.focusable
@@ -419,28 +382,74 @@ internal class ComposeHostingViewController(
         mediator?.isAccessibilityEnabled = isAccessibilityEnabled
     }
 
-    private fun dispose() {
-        rootMetalView.dispose()
-        lifecycleOwner.dispose()
+    private fun startScene() {
+        val metalView = MetalView(
+            retrieveInteropTransaction = {
+                mediator?.retrieveInteropTransaction() ?: object : UIKitInteropTransaction {
+                    override val actions = emptyList<UIKitInteropAction>()
+                    override val isInteropActive = false
+                }
+            },
+            useSeparateRenderThreadWhenPossible = configuration.parallelRendering,
+            render = { canvas, nanoTime ->
+                mediator?.render(canvas.asComposeCanvas(), nanoTime)
+            }
+        )
+        metalView.canBeOpaque = configuration.opaque
+
+        val layers = UIKitComposeSceneLayersHolder(windowContext, configuration.parallelRendering)
+        layers.window = rootView.window
+        this.layers = layers
+
+        mediator = ComposeSceneMediator(
+            parentView = rootView,
+            onFocusBehavior = configuration.onFocusBehavior,
+            focusStack = focusStack,
+            windowContext = windowContext,
+            coroutineContext = composeCoroutineContext,
+            redrawer = metalView.redrawer,
+            composeSceneFactory = { invalidate, context ->
+                createComposeScene(invalidate, context, layers.metalView)
+            },
+            backGestureDispatcher = backGestureDispatcher
+        ).also { mediator ->
+            mediator.updateInteractionRect()
+            mediator.setContent {
+                ProvideContainerCompositionLocals(content)
+            }
+        }
+
+        applicationActiveStateListener = ApplicationActiveStateListener { isApplicationActive ->
+            if (isApplicationActive) {
+                updateMotionSpeed()
+            }
+        }
+
+        rootView.updateMetalView(metalView, ::onDidMoveToWindow)
+    }
+
+    private fun stopScene() {
+        rootView.updateMetalView(metalView = null)
+
         mediator?.dispose()
-        rootView.dispose()
-        applicationActiveStateListener.dispose()
         mediator = null
 
-        layers.dispose(hasViewAppeared)
+        applicationActiveStateListener?.dispose()
+        applicationActiveStateListener = null
+
+        layers?.dispose(hasViewAppeared)
+        layers = null
     }
 
     private fun attachLayer(layer: UIKitComposeSceneLayer) {
-        val window = checkNotNull(view.window) {
-            "Cannot attach layer if the view is not in the window hierarchy"
-        }
-
-        layers.attach(window, layer, hasViewAppeared)
+        assertNotNull(layers) { "Attempt to attach layers for disposed scene" }
+        layers?.attach(layer, hasViewAppeared)
         onAccessibilityChanged()
     }
 
     private fun detachLayer(layer: UIKitComposeSceneLayer) {
-        layers.detach(layer, hasViewAppeared)
+        assertNotNull(layers) { "Attempt to detach layers for disposed scene" }
+        layers?.detach(layer, hasViewAppeared)
         onAccessibilityChanged()
     }
 

@@ -20,8 +20,8 @@ extension XCTestCase {
     /// Awaits for expectation without blocking UI thread.
     @MainActor
     func expect(        
-        timeout: TimeInterval,
-        line: Int,
+        timeout: TimeInterval = 5.0,
+        line: Int = #line,
         expectation: @escaping () -> Bool
     ) async {
         let start = Date()

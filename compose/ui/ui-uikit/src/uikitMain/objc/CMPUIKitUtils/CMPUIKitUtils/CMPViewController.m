@@ -68,31 +68,51 @@
 #pragma mark - CMPViewControllerLifecycleState
 
 typedef NS_ENUM(NSInteger, CMPViewControllerLifecycleState) {
-    CMPViewControllerLifecycleStateInitalized,
+    CMPViewControllerLifecycleStateInitialized,
     CMPViewControllerLifecycleStateStarted,
-    CMPViewControllerLifecycleStateDestroyed
+    CMPViewControllerLifecycleStateStopped
 };
 
 #pragma mark - CMPViewController
 
 @implementation CMPViewController {
     CMPViewControllerLifecycleState _lifecycleState;
+    id<CMPViewControllerLifecycleDelegate> _lifecycleDelegate;
+}
+
+- (instancetype)initWithLifecycleDelegate:(id<CMPViewControllerLifecycleDelegate>)delegate {
+    self = [super initWithNibName:nil bundle:nil];
+    
+    if (self) {
+        _lifecycleDelegate = delegate;
+        _lifecycleState = CMPViewControllerLifecycleStateInitialized;
+    }
+    
+    return self;
 }
 
 - (instancetype)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     
     if (self) {
-        _lifecycleState = CMPViewControllerLifecycleStateInitalized;
+        _lifecycleDelegate = nil;
+        _lifecycleState = CMPViewControllerLifecycleStateInitialized;
     }
     
     return self;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
+    [self transitLifecycleToStarted];
+
     [super viewWillAppear:animated];
-        
-    [self viewControllerDidEnterWindowHierarchy];
+    [_lifecycleDelegate viewControllerWillAppear];
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    
+    [_lifecycleDelegate viewControllerDidDisappear];
 }
 
 - (void)viewSafeAreaInsetsDidChange {
@@ -101,11 +121,8 @@ typedef NS_ENUM(NSInteger, CMPViewControllerLifecycleState) {
 
 - (void)transitLifecycleToStarted {
     switch (_lifecycleState) {
-        case CMPViewControllerLifecycleStateDestroyed:
-            @throw [NSException exceptionWithName:@"CMPViewControllerMisuse"
-                                           reason:@"CMPViewController shouldn't be reused after completely removed from hierarchy, because it's logically marked as Destroyed. You must create a new CMPViewController and use it instead."
-                                         userInfo:nil];
-        case CMPViewControllerLifecycleStateInitalized:
+        case CMPViewControllerLifecycleStateInitialized:
+        case CMPViewControllerLifecycleStateStopped:
             _lifecycleState = CMPViewControllerLifecycleStateStarted;
             [self viewControllerDidEnterWindowHierarchy];
             [self scheduleHierarchyContainmentCheck];
@@ -120,8 +137,8 @@ typedef NS_ENUM(NSInteger, CMPViewControllerLifecycleState) {
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         switch (self->_lifecycleState) {
-            case CMPViewControllerLifecycleStateInitalized:
-            case CMPViewControllerLifecycleStateDestroyed:
+            case CMPViewControllerLifecycleStateInitialized:
+            case CMPViewControllerLifecycleStateStopped:
                 assert(false);
                 break;
             case CMPViewControllerLifecycleStateStarted:
@@ -130,9 +147,8 @@ typedef NS_ENUM(NSInteger, CMPViewControllerLifecycleState) {
                     // everything is fine, schedule next one
                     [self scheduleHierarchyContainmentCheck];
                 } else {
-                    self->_lifecycleState = CMPViewControllerLifecycleStateDestroyed;
+                    self->_lifecycleState = CMPViewControllerLifecycleStateStopped;
                     [self viewControllerDidLeaveWindowHierarchy];
-                    
                 }
                 break;
         }
@@ -140,10 +156,17 @@ typedef NS_ENUM(NSInteger, CMPViewControllerLifecycleState) {
 }
 
 - (void)viewControllerDidEnterWindowHierarchy {
-    [self transitLifecycleToStarted];
 }
 
 - (void)viewControllerDidLeaveWindowHierarchy {
+}
+
+- (void)dealloc {
+    if (_lifecycleState == CMPViewControllerLifecycleStateStarted) {
+        [self viewControllerDidLeaveWindowHierarchy];
+    }
+    
+    [_lifecycleDelegate viewControllerWillDealloc];
 }
 
 @end

@@ -16,59 +16,58 @@
 
 package androidx.compose.ui.window
 
+import androidx.compose.ui.platform.IOSLifecycleOwner
+import androidx.compose.ui.uikit.utils.CMPViewControllerLifecycleDelegateProtocol
 import androidx.lifecycle.Lifecycle.State
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.ViewModelStore
-import androidx.lifecycle.ViewModelStoreOwner
 import platform.Foundation.NSNotificationCenter
+import platform.darwin.NSObject
 
-// TODO: Rename and move to androidx.compose.ui.platform
-internal class ViewControllerBasedLifecycleOwner(
-    notificationCenter: NSNotificationCenter = NSNotificationCenter.defaultCenter,
-) : LifecycleOwner, ViewModelStoreOwner {
-    override val lifecycle = LifecycleRegistry(this)
-    override val viewModelStore = ViewModelStore()
+internal class ViewControllerLifecycleDelegate(
+    private val lifecycleOwner: IOSLifecycleOwner,
+    notificationCenter: NSNotificationCenter = NSNotificationCenter.defaultCenter
+): NSObject(), CMPViewControllerLifecycleDelegateProtocol {
 
     private var isViewAppeared = false
     private var isAppForeground = ApplicationForegroundStateListener.isApplicationForeground
     private var isAppActive = isAppForeground
     private var isDisposed = false
 
-    private val applicationForegroundStateListener = ApplicationForegroundStateListener(notificationCenter) { isForeground ->
-        isAppForeground = isForeground
-        updateLifecycleState()
-    }
+    private val applicationForegroundStateListener =
+        ApplicationForegroundStateListener(notificationCenter) { isForeground ->
+            isAppForeground = isForeground
+            updateLifecycleState()
+        }
 
-    private val applicationActiveStateListener = ApplicationActiveStateListener(notificationCenter) { isActive ->
-        isAppActive = isActive
-        updateLifecycleState()
-    }
+    private val applicationActiveStateListener =
+        ApplicationActiveStateListener(notificationCenter) { isActive ->
+            isAppActive = isActive
+            updateLifecycleState()
+        }
 
     init {
         updateLifecycleState()
     }
 
-    fun dispose() {
+    override fun viewControllerWillDealloc() {
         applicationForegroundStateListener.dispose()
         applicationActiveStateListener.dispose()
-        viewModelStore.clear()
+        lifecycleOwner.viewModelStore.clear()
         isDisposed = true
         updateLifecycleState()
     }
 
-    fun handleViewWillAppear() {
+    override fun viewControllerWillAppear() {
         isViewAppeared = true
         updateLifecycleState()
     }
 
-    fun handleViewDidDisappear() {
+    override fun viewControllerDidDisappear() {
         isViewAppeared = false
         updateLifecycleState()
     }
 
     private fun updateLifecycleState() {
-        lifecycle.currentState = when {
+        lifecycleOwner.lifecycle.currentState = when {
             isDisposed -> State.DESTROYED
             isViewAppeared && isAppForeground && isAppActive -> State.RESUMED
             isViewAppeared && isAppForeground && !isAppActive -> State.STARTED

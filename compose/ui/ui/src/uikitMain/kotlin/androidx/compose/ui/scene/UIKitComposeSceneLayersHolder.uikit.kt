@@ -62,12 +62,27 @@ internal class UIKitComposeSceneLayersHolder(
     }
 
     private val view = ComposeView(
-        onDidMoveToWindow = {},
-        onLayoutSubviews = { windowContext.updateWindowContainerSize() },
         useOpaqueConfiguration = false,
         transparentForTouches = true,
-        metalView = metalView
-    )
+    ).also {
+        it.updateMetalView(
+            metalView = metalView,
+            onLayoutSubviews = { windowContext.updateWindowContainerSize() }
+        )
+    }
+
+    var window: UIWindow? = null
+        set(value) {
+            if (field != value) {
+                field = value
+
+                view.removeFromSuperview()
+                if (layers.isNotEmpty()) {
+                    value?.embedSubview(view)
+                    value?.layoutIfNeeded()
+                }
+            }
+        }
 
     fun animateSizeTransition(scope: CoroutineScope, duration: Duration) {
         if (this.layers.isEmpty()) {
@@ -87,8 +102,6 @@ internal class UIKitComposeSceneLayersHolder(
     }
 
     fun dispose(hasViewAppeared: Boolean) {
-        metalView.dispose()
-
         // `dispose` is called instead of `close`, because `close` is also used imperatively
         // to remove the layer from the array based on user interaction.
         while (this.layers.isNotEmpty()) {
@@ -101,15 +114,14 @@ internal class UIKitComposeSceneLayersHolder(
             layer.dispose()
         }
 
-        view.dispose()
+        view.updateMetalView(metalView = null)
         view.removeFromSuperview()
     }
 
-    fun attach(window: UIWindow, layer: UIKitComposeSceneLayer, hasViewAppeared: Boolean) {
-        val isFirstLayer = this.layers.isEmpty()
+    fun attach(layer: UIKitComposeSceneLayer, hasViewAppeared: Boolean) {
+        val isFirstLayer = layers.isEmpty()
 
-        this.layers.add(layer)
-
+        layers.add(layer)
         view.embedSubview(layer.view)
         view.bringSubviewToFront(metalView)
 
@@ -119,8 +131,8 @@ internal class UIKitComposeSceneLayersHolder(
 
             metalView.setNeedsSynchronousDrawOnNextLayout()
 
-            window.embedSubview(view)
-            window.layoutIfNeeded()
+            window?.embedSubview(view)
+            window?.layoutIfNeeded()
         }
 
         if (hasViewAppeared) {
@@ -149,7 +161,6 @@ internal class UIKitComposeSceneLayersHolder(
 
             // Redraw content with layer removed
             metalView.redrawer.setNeedsRedraw()
-
         }
     }
 
@@ -187,8 +198,8 @@ internal class UIKitComposeSceneLayersHolder(
 
         // Some layers may be removed during rendering, because recomposition will happen in the
         // process, so we need to make a temporary copy of the list
-        layersCache.withCopy {
-            it.fastForEach {
+        layersCache.withCopy { layers ->
+            layers.fastForEach {
                 it.render(composeCanvas, nanoTime)
             }
         }
