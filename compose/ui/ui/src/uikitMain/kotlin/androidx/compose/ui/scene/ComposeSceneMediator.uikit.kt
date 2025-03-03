@@ -58,7 +58,6 @@ import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.platform.WindowInfo
 import androidx.compose.ui.platform.lerp
 import androidx.compose.ui.semantics.SemanticsOwner
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.uikit.LocalKeyboardOverlapHeight
 import androidx.compose.ui.uikit.OnFocusBehavior
 import androidx.compose.ui.uikit.density
@@ -615,13 +614,18 @@ internal class ComposeSceneMediator(
             ) {
                 coroutineScope {
                     launch {
+                        request.outputValue.collect {
+                            textInputService.updateState(oldValue = null, newValue = it)
+                        }
+                    }
+                    launch {
                         request.textLayoutResult.collect {
                             textInputService.updateTextLayoutResult(it)
                         }
                     }
                     suspendCancellableCoroutine<Nothing> { continuation ->
                         textInputService.startInput(
-                            value = request.state,
+                            value = request.value(),
                             imeOptions = request.imeOptions,
                             editProcessor = request.editProcessor,
                             onEditCommand = request.onEditCommand,
@@ -634,10 +638,6 @@ internal class ComposeSceneMediator(
                     }
                 }
             }
-
-        override fun updateTextFieldValue(newValue: TextFieldValue) {
-            textInputService.updateState(oldValue = null, newValue = newValue)
-        }
     }
 }
 

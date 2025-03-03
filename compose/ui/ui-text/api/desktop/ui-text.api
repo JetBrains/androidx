@@ -1359,6 +1359,12 @@ public abstract interface class androidx/compose/ui/text/input/PlatformTextInput
 	public fun updateTextLayoutResult (Landroidx/compose/ui/text/input/TextFieldValue;Landroidx/compose/ui/text/input/OffsetMapping;Landroidx/compose/ui/text/TextLayoutResult;Lkotlin/jvm/functions/Function1;Landroidx/compose/ui/geometry/Rect;Landroidx/compose/ui/geometry/Rect;)V
 }
 
+public abstract interface class androidx/compose/ui/text/input/PlatformTextInputService2 {
+	public abstract fun focusedRectChanged (Landroidx/compose/ui/geometry/Rect;)V
+	public abstract fun startInput (Landroidx/compose/ui/text/input/TextEditorState;Landroidx/compose/ui/text/input/ImeOptions;Lkotlin/jvm/functions/Function1;)V
+	public abstract fun stopInput ()V
+}
+
 public final class androidx/compose/ui/text/input/SetComposingRegionCommand : androidx/compose/ui/text/input/EditCommand {
 	public static final field $stable I
 	public fun <init> (II)V
@@ -1392,6 +1398,17 @@ public final class androidx/compose/ui/text/input/SetSelectionCommand : androidx
 	public final fun getStart ()I
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class androidx/compose/ui/text/input/TextEditingScope {
+	public abstract fun commitText (Ljava/lang/CharSequence;I)V
+	public abstract fun deleteSurroundingTextInCodePoints (II)V
+	public abstract fun setComposingText (Ljava/lang/CharSequence;I)V
+}
+
+public abstract interface class androidx/compose/ui/text/input/TextEditorState : java/lang/CharSequence {
+	public abstract fun getComposition-MzsxiRA ()Landroidx/compose/ui/text/TextRange;
+	public abstract fun getSelection-d9O1mEE ()J
 }
 
 public final class androidx/compose/ui/text/input/TextFieldValue {
